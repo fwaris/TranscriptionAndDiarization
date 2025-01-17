@@ -45,8 +45,8 @@ let processLoop exePath maxCount inputFolder outputFolder =
 
 let testRun() = 
     let exePath = @"E:\s\transcription\Faster-Whisper-XXL\faster-whisper-xxl.exe"
-    let inputFolder = @"E:\s\transcription\input"
-    let outputFolder = @"E:\s\transcription\input"
+    let inputFolder = @"E:\s\transcription\test"
+    let outputFolder = @"E:\s\transcription\test"
     processLoop exePath 1 inputFolder outputFolder
     |> Async.RunSynchronously
 

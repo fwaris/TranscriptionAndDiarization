@@ -14,8 +14,15 @@
 #r "nuget: FsPickler.Json"
 #r "nuget: azure.security.keyvault.secrets"
 #r "nuget: Microsoft.Identity.Client.Broker"
+#r "nuget: OpenCvSharp4.Windows"
+#r "nuget: OpenCvSharp4.Extensions"
+#r "nuget: System.Drawing.Common"
+#r "nuget: Microsoft.SemanticKernel"
 
+#load "../Vtt.fs"
 #load "../Env.fs"
 #load "../Secrets.fs"
+#load "../Video.fs"
+#load "../VisionApi.fs"
 #load "../GraphApi.fs"
 

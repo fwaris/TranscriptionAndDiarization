@@ -14,3 +14,26 @@ let AppId = Environment.GetEnvironmentVariable("TSX_APP_ID")
 let TenantId = Environment.GetEnvironmentVariable("TSX_TENANT_ID")
 let ServiceAccount = Environment.GetEnvironmentVariable("TSX_SERVICE_ACCT")
 let ServiceAccountPassword = Environment.GetEnvironmentVariable("TSX_SERVICE_ACCT_PWD")
+
+let sampleN n xs = 
+    let ys = Seq.toList xs
+    if n >= ys.Length then 
+        ys
+    else 
+        let rng = Random()
+        let rec loop acc =
+            if Set.count acc < n then 
+                loop (Set.add (rng.Next(n)) acc)
+            else
+                acc
+        let s = loop Set.empty                
+        s 
+        |> Seq.map(fun i -> ys.[i])
+        |> Seq.toList
+
+let sample frac xs = 
+    let rng = Random()
+    xs 
+    |> Seq.filter(fun _ -> rng.NextDouble() < frac)
+
+
