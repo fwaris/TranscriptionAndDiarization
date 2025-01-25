@@ -6,12 +6,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Vtt.fs" />
+    <Compile Include="Binarize.fs" />
     <Compile Include="Env.fs" />
     <Compile Include="Secrets.fs" />
     <Compile Include="Video.fs" />
     <Compile Include="VisionApi.fs" />
     <Compile Include="GraphApi.fs" />
     <Compile Include="ShowModel.fs" />
+    <Compile Include="EmbedAudio.fs" />
     <Compile Include="Program.fs" />
     <None Include="scripts\packages.fsx" />
     <None Include="scripts\testspeech.fsx" />
@@ -20,9 +22,12 @@
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.13.1" />
     <PackageReference Include="azure.security.keyvault.secrets" Version="4.7.0" />
+    <PackageReference Include="FFMpegCore" Version="5.1.0" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.67.0" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.20.1" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
     <!-- <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" Version="0.5.2" /> -->
     <PackageReference Include="System.Numerics.Tensors" Version="9.0.0" />
     <PackageReference Include="OpenCvSharp4.Extensions" Version="4.10.0.20241108" />

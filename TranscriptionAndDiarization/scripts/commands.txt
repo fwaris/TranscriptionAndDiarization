@@ -1,0 +1,2 @@
+--language English --model medium --output_format vtt --diarize pyannote_v3.1 --diarize_dump
+.\faster-whisper-xxl.exe "E:\s\transription_fw\test\FP&SC Dir+ Meeting-20240318 1727-1.mp4" --language English --model medium --output_format vtt --diarize pyannote_v3.1 --diarize_dump --output_dir "E:\s\transription_fw\test" --ff_mdx_kim2
