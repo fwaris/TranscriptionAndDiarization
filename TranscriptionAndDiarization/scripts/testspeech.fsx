@@ -60,7 +60,7 @@ let plotDists() =
     |> List.mapi(fun i xs -> 
         xs 
         |> Chart.Point
-        |> Chart.withTraceInfo (if i=0 then "Avg. Dist between Peter Samples" else "Avg. Dist. between Peter samples and othe speaker samples")
+        |> Chart.withTraceInfo (if i=0 then "Avg. Dist between Peter Samples" else "Avg. Dist. between Peter samples and other speaker samples")
         |> Chart.withMarkerStyle(Size=10))
     |> Chart.combine
     |> Chart.withSize(800,400)
