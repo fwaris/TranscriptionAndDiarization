@@ -8,6 +8,7 @@ let vttFn = @"e:\s\transription_fw\test\FP&SC Dir+ Meeting-20240318 1727-1.vtt"
 let waveFile = EmbedAudio.convertTo16KhzWav videoFn
 let uttrs = Vtt.parseVtt vttFn
 let bySpeaker = uttrs |> List.groupBy (fun x ->x.Speaker )
+
 let speakerLongSpeech = 
     bySpeaker
     |> List.map(fun (spkr,spchs) -> spkr, spchs |> List.filter(fun u -> (u.To - u.From).TotalSeconds > 10.))
@@ -42,11 +43,13 @@ let nonPeterEmbeddings =
         |> List.map ((EmbedAudio.toOnnxInput "waveform") >> EmbedAudio.getEmbeddings))
     |> List.filter (fun (_,xs) -> xs.Length > 0)
 
+
 let allPairsDist l1 l2 = 
     List.allPairs l1 l2 
     |> List.filter (fun (a,b) -> a <> b)
     |> List.map(fun (a,b) -> EmbedAudio.Dist.cosineDistance a b)
     |> List.average
+
 
 let peterDists = allPairsDist peterEmbeddings peterEmbeddings
 

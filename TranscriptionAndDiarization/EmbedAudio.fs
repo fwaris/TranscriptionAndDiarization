@@ -85,16 +85,18 @@ module ModelInfo =
         inf.InputMetadata |> Seq.iter printNode
         inf.OutputMetadata |> Seq.iter printNode
 
-let convertTo16KhzWav (inputFile:string) =
+let convertTo16KhzWav skipIfExists (inputFile:string) =
     let outFile = changeExt inputFile ".wav"
-    let r = 
-        FFMpegArguments.FromFileInput(inputFile)    
-            .OutputToFile(outFile, true, fun o -> 
-                o
-                    .WithAudioSamplingRate(16000)
-                    .ForceFormat("wav")
-                |> ignore)
-            .ProcessSynchronously()
+    if not (skipIfExists && File.Exists outFile) then         
+        let r = 
+            FFMpegArguments.FromFileInput(inputFile)    
+                .OutputToFile(outFile, true, fun o -> 
+                    o
+                        .WithAudioSamplingRate(16000)
+                        .ForceFormat("wav")
+                    |> ignore)
+                .ProcessSynchronously()
+        printfn $"created {outFile} : {r}"
     outFile
 
 let toSamples (waveFile16Kz:string) = 
@@ -111,3 +113,9 @@ let getEmbeddings (input:NamedOnnxValue) =
     results.[0].AsEnumerable<float32>() |> Seq.toArray
 
 let getEmbeddingsFromFile = toSamples >> (toOnnxInput "waveform") >> getEmbeddings
+
+let allPairsDist l1 l2 = 
+    List.allPairs l1 l2 
+    |> List.filter (fun (a,b) -> a <> b)
+    |> List.map(fun (a,b) -> Dist.cosineDistance a b)
+    |> List.average
