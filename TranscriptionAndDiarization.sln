@@ -5,6 +5,10 @@ VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TranscriptionAndDiarization", "TranscriptionAndDiarization\TranscriptionAndDiarization.fsproj", "{4FEFBBA7-A2ED-4164-AC67-0F26E9D61A8A}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TranscriptionService", "TranscriptionService\TranscriptionService.fsproj", "{48D978DA-311F-4A83-BF8D-F44800A8A3A9}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TranscriptionServiceHost", "TranscriptionServiceHost\TranscriptionServiceHost.fsproj", "{5ACB8A37-F4B6-4143-BFD5-0D30B498781B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{4FEFBBA7-A2ED-4164-AC67-0F26E9D61A8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4FEFBBA7-A2ED-4164-AC67-0F26E9D61A8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FEFBBA7-A2ED-4164-AC67-0F26E9D61A8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48D978DA-311F-4A83-BF8D-F44800A8A3A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48D978DA-311F-4A83-BF8D-F44800A8A3A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48D978DA-311F-4A83-BF8D-F44800A8A3A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48D978DA-311F-4A83-BF8D-F44800A8A3A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5ACB8A37-F4B6-4143-BFD5-0D30B498781B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ACB8A37-F4B6-4143-BFD5-0D30B498781B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ACB8A37-F4B6-4143-BFD5-0D30B498781B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ACB8A37-F4B6-4143-BFD5-0D30B498781B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
