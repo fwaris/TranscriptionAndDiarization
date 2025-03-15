@@ -1,0 +1,53 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "./TestClient/TestClient.fsproj"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "build TestClient"
+        },
+        {
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "./TranscriptionServiceHost/TranscriptionServiceHost.fsproj"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "build Host"
+        },
+        {
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "./TranscriptionClient/TranscriptionClient.fsproj"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "label": "build Transcription Client"
+        }        
+    ]
+}

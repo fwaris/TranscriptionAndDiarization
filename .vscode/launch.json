@@ -1,0 +1,37 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Test Client",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build TestClient",
+            "program": "${workspaceFolder}/TestClient/bin/Debug/net9.0/TestClient.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/TestClient",            
+        },
+        {
+            "name": "Transcription Client",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Transcription Client",
+            "program": "${workspaceFolder}/TranscriptionClient/bin/Debug/net9.0/TranscriptionClient.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/TranscriptionClient",
+            
+        },        
+        {
+            "name": "Host",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build Host",
+            "program": "${workspaceFolder}/TranscriptionServiceHost/bin/Debug/net9.0/TranscriptionServiceHost.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/TranscriptionServiceHost",
+            
+        }
+    ]
+}

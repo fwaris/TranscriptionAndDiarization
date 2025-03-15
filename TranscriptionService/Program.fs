@@ -14,7 +14,7 @@ module Pgm =
 
     let videoFn = @"e:\s\transription_fw\test\FP&SC Dir+ Meeting-20240318 1727-1.mp4"
     let vttFn = @"e:\s\transription_fw\test\FP&SC Dir+ Meeting-20240318 1727-1.vtt"
-    let waveFile = EmbedAudio.convertTo16KhzWav true videoFn
+    let waveFile = EmbedAudio.convertTo16KhzWav videoFn
     let uttrs = Vtt.parseVtt vttFn
     let bySpeaker = uttrs |> List.groupBy (fun x ->x.Speaker )
     let speakerLongSpeech = 
@@ -54,6 +54,4 @@ module Pgm =
         let npe = nonPeterEmbeddings()
         EmbedAudio.Dist.cosineDistance peterEmbeddings.[0] (snd npe.[3]).[0]
     
-(*
-testDists
-*)
+    testDist()
