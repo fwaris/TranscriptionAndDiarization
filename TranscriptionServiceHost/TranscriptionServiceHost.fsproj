@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="appSettings.json" />
     <Compile Include="Service.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

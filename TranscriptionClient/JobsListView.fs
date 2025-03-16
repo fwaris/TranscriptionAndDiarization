@@ -13,7 +13,7 @@ open Avalonia
 
 module JobsListView =
 
-    let create window model = 
+    let create window model dispatch = 
         Border.create [
             Grid.column 1
             Grid.rowSpan 2
@@ -22,7 +22,7 @@ module JobsListView =
             Border.borderBrush Brushes.LightBlue
             Border.child (
                 Grid.create [
-                    Grid.rowDefinitions "30.,*,30."
+                    Grid.rowDefinitions "30.,*"
                     Grid.children [
                         Vls.textBlock "Your Jobs" [TextBlock.textAlignment TextAlignment.Center; TextBlock.horizontalAlignment HorizontalAlignment.Stretch; TextBlock.fontWeight FontWeight.Bold;]
                         ScrollViewer.create [
@@ -35,19 +35,18 @@ module JobsListView =
                                     ListBox.itemTemplate (
                                         DataTemplateView.create<_,_>(fun (item:Job) ->
                                             Grid.create [
-                                                Grid.rowDefinitions "*,*,*,*,*"
-                                                Grid.columnDefinitions "100.,2*"
+                                                Grid.rowDefinitions "*,*,*,*,*,*,*"
+                                                Grid.columnDefinitions "100.,*"
                                                 Grid.margin 2
                                                 Grid.children [  
                                                     Button.create [
                                                         Button.content "\u0078"
-                                                        Button.onClick (fun _ -> JobSubmissionView.cancelJob window model item.JobId |> ignore)
+                                                        Button.onClick (fun _ -> JobSubmissionView.cancelJob window model dispatch item.JobId |> ignore)
                                                         Button.margin 2
                                                         Grid.row 0
-                                                        Grid.column 1
+                                                        Grid.column 0
                                                         Button.verticalAlignment VerticalAlignment.Center
-                                                        Button.horizontalAlignment HorizontalAlignment.Right
-
+                                                        Button.horizontalAlignment HorizontalAlignment.Left
                                                     ]
                                                     Vls.textBlock "Job Id:" [Grid.row 1]
                                                     Vls.textBlock item.JobId [Grid.row 1; Grid.column 1]
@@ -57,6 +56,10 @@ module JobsListView =
                                                     Vls.textBlock (item.StartTime.ToShortTimeString()) [Grid.row 3; Grid.column 1]
                                                     Vls.textBlock "Status:" [Grid.row 4]
                                                     Vls.textBlock (string item.Status) [Grid.row 4; Grid.column 1]
+                                                    Vls.textBlock "Diarize:" [Grid.row 5]
+                                                    Vls.textBlock (sprintf "%A" item.Diarize) [Grid.row 5; Grid.column 1]                                                    
+                                                    Vls.textBlock "Identify Speaker:" [Grid.row 6]
+                                                    Vls.textBlock (sprintf "%A" item.IdentifySpeaker) [Grid.row 6; Grid.column 1]
                                                 ]
                                             ]
                                         )

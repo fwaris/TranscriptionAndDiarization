@@ -1,13 +1,12 @@
 namespace TranscriptionServiceHost
-open System
-open System.Threading.Tasks
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
-open Microsoft.Extensions.Logging
+
 open Microsoft.AspNetCore.Builder
-open Microsoft.AspNetCore.SignalR
+
 open Microsoft.AspNetCore.Hosting
 open TranscriptionInterop
+
 
 module Pgm = 
 
@@ -39,7 +38,10 @@ module Pgm =
                 .UseWindowsService()  // Makes it a Windows Service
                 
                 .ConfigureServices(fun services -> 
-                    services.AddSignalR() |> ignore
+                    services
+                        .AddSignalR()
+                        .AddJsonProtocol(fun o -> o.PayloadSerializerOptions <- Ser.serOptions())
+                        |> ignore
                     services.AddHostedService<Service>() |> ignore
                 )                
                 .ConfigureWebHostDefaults(fun wb -> 

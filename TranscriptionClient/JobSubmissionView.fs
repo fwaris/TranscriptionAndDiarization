@@ -30,33 +30,44 @@ module JobSubmissionView =
             | None -> ()
         }
                
-    let startJob (model:Model) =
+    let submitJob (model:Model) dispatch =
         task {
-            if String.IsNullOrWhiteSpace model.localFolder.Current then 
-                model.showNotification "" "Please select a folder containing video files" 
-            elif model.jobs.Current |> List.exists(fun j -> j.Path = model.localFolder.Current ) then
-                model.showNotification "" $"There is an existing job for the folder '{model.localFolder.Current}'"                        
-            elif Directory.Exists model.localFolder.Current |> not then
-                model.showNotification "" $"Folder does not exist '{model.localFolder.Current}'"
-            else
-                let job = 
-                    {
-                        JobId="1"
-                        StartTime=DateTime.Now
-                        Path=model.localFolder.Current
-                        Status = ``Waiting to be queued``
-                        Diarize = model.diarize.Current
-                        IdentifySpeaker=model.tagSpeaker.Current
-                    }                        
-                model.update(fun () -> model.jobs.Set (job::model.jobs.Current))                        
+            try 
+                if String.IsNullOrWhiteSpace model.localFolder.Current then 
+                    model.showNotification "" "Please select a folder containing video files" 
+                elif model.jobs.Current |> List.exists(fun j -> j.Path = model.localFolder.Current ) then
+                    model.showNotification "" $"There is an existing job for the folder '{model.localFolder.Current}'"                        
+                elif Directory.Exists model.localFolder.Current |> not then
+                    model.showNotification "" $"Folder does not exist '{model.localFolder.Current}'"
+                else
+                    let diarize = model.diarize.Current
+                    let tagSpeaker = model.tagSpeaker.Current
+                    let jobCreation = {diarize=diarize; identifySpeaker=tagSpeaker}
+                    let! rslt = ServiceApi.invoke model dispatch (fun client -> task{ return! client.CreateJob jobCreation })
+                    let job = 
+                        {
+                            JobId=rslt.jobId
+                            StartTime=DateTime.Now
+                            Path=model.localFolder.Current
+                            Status = Created
+                            Diarize = diarize
+                            IdentifySpeaker= tagSpeaker
+                            RemoteFolder=rslt.jobPath
+                        }                        
+                    model.update(fun () -> model.jobs.Set (job::model.jobs.Current))
+            with ex ->
+                model.showNotification "" $"Error submitting job: {ex.Message}"
         }
 
     let updateJobStatus model jobId status = 
         let js = model.jobs.Current |> List.map (fun j -> if j.JobId = jobId then {j with Status=status} else j)
         model.update (fun () -> model.jobs.Set js)
 
+    let removeJob model jobId = 
+        let js = model.jobs.Current |> List.filter(fun x -> x.JobId <> jobId)
+        model.jobs.Set js
             
-    let cancelJob window (model:Model) jobId = 
+    let cancelJob window (model:Model) dispatch jobId = 
         task {
             let job = model.jobs.Current |> List.tryFind (fun x -> x.JobId = jobId)
             match job with 
@@ -66,12 +77,14 @@ module JobSubmissionView =
                     let! result = dlg.ShowDialogAsync(window)
                     if result then
                         if job.IsRunning then
-                            updateJobStatus model jobId Cancelling                                    
+                            updateJobStatus model jobId Cancelling
+                            do! ServiceApi.invoke model dispatch (fun client -> task{ return! client.CancelJob jobId })
+                elif job.Status.IsCancelled || job.Status.IsDone then 
+                    removeJob model jobId
             | None -> ()
-        }
-        
+        }        
 
-    let create window (model:Model)  =
+    let create window (model:Model) dispatch =
         Border.create [
             Grid.row 0
             Border.horizontalAlignment HorizontalAlignment.Stretch
@@ -98,6 +111,7 @@ module JobSubmissionView =
                             TextBlock.create [                        
                                 Grid.row 0
                                 Grid.column 1                        
+                                TextBlock.margin (Thickness(2.,0.,0.,2.))
                                 TextBlock.text model.localFolder.Current; 
                                 TextBlock.horizontalAlignment HorizontalAlignment.Stretch
                                 TextBlock.verticalAlignment VerticalAlignment.Center
@@ -147,7 +161,7 @@ module JobSubmissionView =
                             Grid.row 2
                             Grid.columnSpan 3
                             Button.content "Submit Transcription Job"
-                            Button.onClick (fun _ -> startJob model |> ignore)
+                            Button.onClick (fun _ -> submitJob model dispatch |> ignore)
                             Button.margin 2
                             Button.verticalAlignment VerticalAlignment.Center
                         ]
