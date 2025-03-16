@@ -1,160 +1,111 @@
-namespace TranscriptionClient
-#nowarn "57"
+﻿namespace TrascriberClient
 open System
 open System.IO
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI
 open Avalonia.Threading
-open System.Threading
 open TranscriptionInterop
 open Avalonia.Layout
 open Avalonia.Media
+open Avalonia.Controls.Primitives
+open Avalonia
+type Job = {JobId:string; Path:string; StartTime:DateTime; Status:JobsState; Diarize : bool; IdentifySpeaker : bool}
+    with member this.IsRunning = this.Status <> Done || this.Status <> Cancelled || not this.Status.IsError
 
-type Job = {JobId:string; Path:string; StartTime:DateTime}
+module Vls = 
+    let textBlock text ls = 
+        TextBlock.create [
+            yield TextBlock.text text
+            yield TextBlock.margin 2
+            yield TextBlock.verticalAlignment VerticalAlignment.Center
+            for l in ls do
+                yield l
+        ]
 
-[<AbstractClass; Sealed>]
-type Views =
-    static member main (window:Window)  =
-        Component (fun ctx ->
-            let jobsInQueue = ctx.useState 0            
-            let msg = ctx.useState ""
-            let localFolder = ctx.useState ""
-            let jobs : IWritable<Job list> = ctx.useState []
+module JobsPanel = 
 
-            let getFolder() =
-                async{
-                    match! TranscriptionClient.Dialogs.openFileDialog(window) with
-                    | Some f -> localFolder.Set f.Name
-                    | None -> ()
-                }
+    let getFolder window (localFolder:IWritable<_>) =
+        async{
+            match! TranscriptionClient.Dialogs.openFileDialog(window) with
+            | Some f -> localFolder.Set f
+            | None -> ()
+        }
         
-            let update (f:unit->unit) = Dispatcher.UIThread.InvokeAsync f |> ignore
 
-            let dispatch = function 
-                | Notification m -> update (fun _ -> msg.Set m)
-                | Jobs i -> update (fun _ -> jobsInQueue.Set i)                
-                | JobCancelled m -> update (fun _ -> msg.Set m)
-                | JobDone m -> update (fun _ -> msg.Set m)
-                | JobStarted m -> update (fun _ -> msg.Set m)
-            
-            let connection = lazy(Connection.create dispatch)
-            let client = lazy(new TranscriptionClient(connection.Value,dispatch))
-
-            let connect() = 
-                task {
-                    dispatch (Notification "Connecting")
-                    do! connection.Value.StartAsync()
-                    dispatch (Notification "Connected")
-                }
-
-            let cancelJob jobId = 
-                task {
-                    update (fun _ -> jobs.Set (jobs.Current |> List.filter (fun x -> x.JobId <> jobId)))
-                }
-
-            let startJob() =
-                task {
-                    if String.IsNullOrWhiteSpace localFolder.Current then 
-                        dispatch (Notification "No folder set")
-                    elif jobs.Current |> List.exists(fun j -> j.Path = localFolder.Current ) then
-                        dispatch (Notification $"There is an existing job for the folder '{localFolder.Current}'")
-                    elif Directory.Exists localFolder.Current |> not then
-                        dispatch (Notification $"Folder does not exist '{localFolder.Current}'")
-                    else
-                        let js = {JobId="1"; StartTime=DateTime.Now; Path=localFolder.Current}::jobs.Current
-                        update(fun () -> jobs.Set js)                        
-                }
-
-            //root view
-            DockPanel.create [                
-                DockPanel.children [
-                    Grid.create [
-                        Grid.rowDefinitions "50.,50.,50.,*"
-                        Grid.columnDefinitions "2*,1.*"
-                        Grid.horizontalAlignment HorizontalAlignment.Stretch
-                        Grid.children [
-                            StackPanel.create [
-                                StackPanel.margin 2
-                                Grid.row 0
-                                StackPanel.orientation Orientation.Horizontal
-                                StackPanel.horizontalAlignment HorizontalAlignment.Stretch
-                                StackPanel.children [
-                                    TextBlock.create [TextBlock.text "Folder:"; TextBlock.verticalAlignment VerticalAlignment.Center; TextBlock.margin 2]
-                                    TextBlock.create [
-                                        TextBlock.text localFolder.Current; 
-                                        TextBlock.horizontalAlignment HorizontalAlignment.Stretch
-                                        TextBlock.margin 2
-                                        TextBlock.verticalAlignment VerticalAlignment.Center
-                                    ]
-                                    Button.create [
-                                        Button.content "..."
-                                        Button.onClick (fun _ -> getFolder() |> Async.Start )
-                                        Button.margin 2
-                                        Button.verticalAlignment VerticalAlignment.Center
-                                    ]
+    let jobPanel window (localFolder:IWritable<_>) (diarize:IWritable<bool>) (tagSpeaker:IWritable<bool>)  =
+        Border.create [
+            Grid.row 0
+            Border.horizontalAlignment HorizontalAlignment.Stretch
+            Border.verticalAlignment VerticalAlignment.Top
+            Border.margin 2
+            Border.borderThickness 1.0
+            Border.borderBrush Brushes.LightBlue
+            Border.margin 2
+            Border.clipToBounds true
+            Border.child (
+                Grid.create [
+                    Grid.horizontalAlignment HorizontalAlignment.Stretch
+                    Grid.rowDefinitions "*,*,*"
+                    Grid.columnDefinitions "*,*,*"
+                    Grid.children [
+                        Vls.textBlock "Job Folder:" [Grid.row 0; Grid.column 0]
+                        TextBlock.create [                                    
+                            Grid.row 0
+                            Grid.column 1                        
+                            TextBlock.text localFolder.Current; 
+                            TextBlock.horizontalAlignment HorizontalAlignment.Stretch
+                            TextBlock.verticalAlignment VerticalAlignment.Center
+                            TextBlock.margin 2
+                            TextBlock.textWrapping TextWrapping.Wrap
+                            TextBlock.background Brushes.Lavender
+                            TextBlock.tip "Folder containing video (.mp4) files"
+                        ]
+                        Button.create [
+                            Grid.row 0
+                            Grid.column 2
+                            Button.content "..."
+                            Button.onClick (fun _ -> getFolder window localFolder |> Async.Start )
+                            Button.margin 2
+                            Button.verticalAlignment VerticalAlignment.Center
+                        ]                                            
+                        StackPanel.create [
+                            Grid.row 1
+                            Grid.columnSpan 3
+                            StackPanel.margin 2
+                            StackPanel.orientation Orientation.Horizontal
+                            StackPanel.horizontalAlignment HorizontalAlignment.Stretch
+                            StackPanel.children [
+                                CheckBox.create [
+                                    CheckBox.tip "Identifies distinct speakers in the audio transcript but takes longer to run"
+                                    CheckBox.content "Diarize"
+                                    CheckBox.isChecked diarize.Current
+                                    CheckBox.onChecked (fun isChecked -> diarize.Set true)
+                                    CheckBox.onUnchecked (fun isChecked -> diarize.Set false)
+                                    CheckBox.margin 2
+                                    CheckBox.verticalAlignment VerticalAlignment.Center
                                 ]
-                            ]
-                            StackPanel.create [
-                                StackPanel.margin 2
-                                Grid.row 1
-                                StackPanel.orientation Orientation.Horizontal
-                                StackPanel.horizontalAlignment HorizontalAlignment.Stretch
-                                StackPanel.children [                                    
-                                    TextBlock.create [TextBlock.text "All jobs in service queue:"; TextBlock.margin 2; TextBlock.verticalAlignment VerticalAlignment.Center]
-                                    TextBlock.create [TextBlock.text (string jobsInQueue.Current); TextBlock.margin 2;  TextBlock.verticalAlignment VerticalAlignment.Center]
-                                ]
-
-                            ]
-                            Button.create [
-                                Grid.row 2
-                                Button.content "Start Transcription Job"
-                                Button.onClick (fun _ -> startJob() |> ignore)
-                                Button.margin 2
-                                Button.verticalAlignment VerticalAlignment.Center
-                            ]
-                            Border.create [
-                                Grid.row 3
-                                Grid.columnSpan 2
-                                Border.horizontalAlignment HorizontalAlignment.Stretch
-                                Border.verticalAlignment VerticalAlignment.Bottom
-                                Border.margin 3
-                                Border.background Brushes.DarkSlateGray
-                                Border.child(
-                                    TextBlock.create [
-                                        TextBlock.margin 2
-                                        TextBlock.text msg.Current                            
-                                        TextBlock.horizontalAlignment HorizontalAlignment.Stretch
-                                    ]  
-                                )
-                            ]
-                            
-                            StackPanel.create [
-                                Grid.column 1
-                                StackPanel.horizontalAlignment HorizontalAlignment.Stretch
-                                StackPanel.children [
-                                    TextBlock.create [TextBlock.text "Your Jobs"; TextBlock.margin 2; TextBlock.verticalAlignment VerticalAlignment.Center]
-                                    ListBox.create [
-                                        ListBox.dataItems jobs.Current
-                                        ListBox.itemTemplate (
-                                            DataTemplateView.create<_,_>(fun (item:Job) ->
-                                                StackPanel.create [
-                                                    StackPanel.orientation Orientation.Vertical
-                                                    StackPanel.horizontalAlignment HorizontalAlignment.Stretch
-                                                    StackPanel.children [
-                                                        TextBlock.create [TextBlock.text item.JobId; TextBlock.margin 2]                         
-                                                        TextBlock.create [TextBlock.text item.Path; TextBlock.margin 2; TextBlock.textWrapping TextWrapping.Wrap]                               
-                                                        TextBlock.create [TextBlock.text (item.StartTime.ToShortTimeString()); TextBlock.margin 2]
-                                                        Button.create [Button.content "Cancel"; Button.onClick (fun _ -> cancelJob item.JobId |> ignore)]
-                                                    ]
-                                                ]
-                                            )
-                                        )                                       
-                                    ]
+                                CheckBox.create [
+                                    CheckBox.tip "Identifes a specific speaker in the audio transcript. This particular speaker is configured in the service and cannot be changed from the client"
+                                    CheckBox.content "Identify Speaker"
+                                    CheckBox.isEnabled diarize.Current
+                                    CheckBox.isChecked tagSpeaker.Current
+                                    CheckBox.onChecked (fun isChecked -> tagSpeaker.Set true)
+                                    CheckBox.onUnchecked (fun isChecked -> tagSpeaker.Set false)
+                                    CheckBox.margin 2
+                                    CheckBox.verticalAlignment VerticalAlignment.Center
                                 ]
                             ]
                         ]
+                        Button.create [
+                            Grid.row 2
+                            Grid.columnSpan 3
+                            Button.content "Submit Transcription Job"
+                            Button.onClick (fun _ -> startJob diarize.Current tagSpeaker.Current |> ignore)
+                            Button.margin 2
+                            Button.verticalAlignment VerticalAlignment.Center
+                        ]
                     ]
-                ]
+                ])
             ]
-        )
+

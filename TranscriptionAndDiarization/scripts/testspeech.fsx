@@ -5,7 +5,7 @@ open Plotly.NET
 
 let videoFn = @"e:\s\transription_fw\test\FP&SC Dir+ Meeting-20240318 1727-1.mp4"
 let vttFn = @"e:\s\transription_fw\test\FP&SC Dir+ Meeting-20240318 1727-1.vtt"
-let waveFile = EmbedAudio.convertTo16KhzWav videoFn
+let waveFile = EmbedAudio.convertTo16KhzWav true videoFn
 let uttrs = Vtt.parseVtt vttFn
 let bySpeaker = uttrs |> List.groupBy (fun x ->x.Speaker )
 

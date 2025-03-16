@@ -3,6 +3,16 @@ open System
 open System.Threading.Tasks
 open Microsoft.AspNetCore.SignalR.Client
 
+type JobsState = 
+    ``Waiting to be queued`` 
+    | ``In service queue`` 
+    | Transcribing 
+    | Diarizing 
+    | ``Speaker tagging``
+    | Done 
+    | Cancelled 
+    | Cancelling
+    | Error of string 
 
 type ITranscriptionService =
     abstract member Echo : string -> Task<string>
@@ -12,18 +22,15 @@ type ITranscriptionService =
 
 type ITranscriptionClient =
     abstract member JobsInQueue : int -> Task
-    abstract member JobsStartResult : string -> Task
-    abstract member JobCancelResult : string -> Task
-    abstract member JobDone : string -> Task
+    abstract member JobState : string*JobsState -> Task
 
-type ClientMsg = JobStarted of string  | Jobs of int | JobDone of string | JobCancelled of string | Notification of string
+type ConnectionState = Connected | Disconnected | Reconnecting
+type ClientMsg = Status of string*JobsState | Jobs of int | ConnectionState of ConnectionState
 
 type TranscriptionClient(hub:HubConnection,dispatch:ClientMsg->unit ) = 
     
     let d1 = hub.On<int>("JobsInQueue",Jobs>>dispatch)
-    let d2 = hub.On<string>("JobsStartResult",JobStarted>>dispatch)
-    let d3 = hub.On<string>("JobDone",JobDone>>dispatch)
-    let d4 = hub.On<string>("JobCancelResult",JobCancelled>>dispatch)
+    let d2 = hub.On<string*JobsState>("JobState",Status>>dispatch)
     
     interface ITranscriptionService with        
         member this.CancelJob(jobId: string): Task = 
@@ -37,4 +44,4 @@ type TranscriptionClient(hub:HubConnection,dispatch:ClientMsg->unit ) =
             hub.InvokeAsync("StartJob",jobId)
         
     interface IDisposable with 
-        member this.Dispose (): unit = [d1;d2;d3;d4] |> List.iter _.Dispose()
+        member this.Dispose (): unit = [d1;d2] |> List.iter _.Dispose()

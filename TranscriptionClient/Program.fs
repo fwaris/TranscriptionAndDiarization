@@ -15,7 +15,7 @@ type MainWindow() as this =
     do
         base.Title <- "Transcription Client"
         base.Width <- 500.0
-        base.Height <- 200.0
+        base.Height <- 400.0
         this.Content <- Views.main this
 
 type App() =

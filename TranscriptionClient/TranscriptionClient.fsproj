@@ -4,9 +4,16 @@
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Connection.fs" />
+    <Compile Include="Model.fs" />
+    
     <Compile Include="Dialogs.fs" />
-    <Compile Include="Views.fs" />
+    
+    <Compile Include="JobSubmissionView.fs" />
+    
+    <Compile Include="JobsListView.fs" />
+    
+    
+    <Compile Include="Main.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
