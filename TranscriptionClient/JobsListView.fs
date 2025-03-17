@@ -31,7 +31,7 @@ module JobsListView =
                             ScrollViewer.verticalScrollBarVisibility ScrollBarVisibility.Auto
                             ScrollViewer.content (
                                 ListBox.create [
-                                    ListBox.dataItems model.jobs.Current                                        
+                                    ListBox.dataItems model.uiJobs.Current
                                     ListBox.itemTemplate (
                                         DataTemplateView.create<_,_>(fun (item:Job) ->
                                             Grid.create [

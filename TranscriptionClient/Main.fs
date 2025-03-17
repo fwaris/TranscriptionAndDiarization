@@ -13,56 +13,64 @@ open Avalonia.Media
 open Avalonia.Controls.Primitives
 open Avalonia
 
+module U =
+    //notificatons
+    let mutable private notificationManager : Notifications.WindowNotificationManager = Unchecked.defaultof<_>
+
+    let initNotfications(window) =
+        notificationManager <- Notifications.WindowNotificationManager(window)
+        notificationManager.MaxItems <- 1
+        notificationManager.Position <- Avalonia.Controls.Notifications.NotificationPosition.BottomLeft
+        notificationManager.Margin <- Thickness(10)
+
+    let showNotification title text =
+        if notificationManager <> Unchecked.defaultof<_> then
+            let notification = Avalonia.Controls.Notifications.Notification(
+                title,
+                text,
+                Avalonia.Controls.Notifications.NotificationType.Information
+            )
+            notificationManager.Show(notification)
+
+    let invokeOnUIThread (f:unit->unit) = Dispatcher.UIThread.InvokeAsync f |> ignore
+
+    let connectionColor = function 
+        | Connecting -> Brushes.Orange 
+        | Connected -> Brushes.Green 
+        | Disconnected -> Brushes.Gray 
+        | Reconnecting -> Brushes.Yellow
+
+
 [<AbstractClass; Sealed>]
 type Views =
     static member main (window:Window)  =
         Component (fun ctx ->
-            //notificatons
-            let notificationManager = Avalonia.Controls.Notifications.WindowNotificationManager(window)
-            notificationManager.MaxItems <- 1
-            notificationManager.Position <- Avalonia.Controls.Notifications.NotificationPosition.BottomLeft
-            notificationManager.Margin <- Thickness(10)
-        
-            let showNotification title text =
-                let notification = Avalonia.Controls.Notifications.Notification(
-                    title,
-                    text,
-                    Avalonia.Controls.Notifications.NotificationType.Information
-                )
-                notificationManager.Show(notification)
-
-            let update (f:unit->unit) = Dispatcher.UIThread.InvokeAsync f |> ignore
-
-            let connectionColor = function 
-                | Connecting -> Brushes.Orange 
-                | Connected -> Brushes.Green 
-                | Disconnected -> Brushes.Gray 
-                | Reconnecting -> Brushes.Yellow
             
-
             //messages may come from the server or the UI
-            let rec dispatch = function 
-                | Status {jobId=id; status= ``Done server processing`` }-> JobProcess.startPostServiceComplete model dispatch id |> ignore
-                | Status {jobId=id; status= Cancelled } -> JobSubmissionView.removeJob model id
-                | Status {jobId=id; status=status} -> JobSubmissionView.updateJobStatus model id status
-                | Jobs j -> model.uiThreadInvoke (fun _ -> model.jobsInQueue.Set j)
-                | ConnectionState c -> model.uiThreadInvoke (fun _ -> model.connectionState.Set c)
+            let rec dispatch = function
+                | Status {jobId=id; status= ``Done server processing`` } -> JobProcess.startPostServiceComplete model dispatch id |> ignore
+                | Status {jobId=id; status= Cancelled } -> Jobs.removeJob model id
+                | Status {jobId=id; status=status} -> Jobs.updateJobStatus model id status
+                | Jobs j -> model.invokeOnUIThread (fun _ -> model.jobsInQueue.Set j)
+                | ConnectionState c -> model.invokeOnUIThread (fun _ -> model.connectionState.Set c)
+                | UpdateJobs js -> model.invokeOnUIThread (fun _ -> model.uiJobs.Set js)
 
-            and connection = lazy(Connection.create dispatch)
+            and connection = Connection.get dispatch
 
             and model = {
+                runningJobs = Data.jobs
                 jobsInQueue = ctx.useState 0            
                 localFolder = ctx.useState ""
                 diarize = ctx.useState true
                 tagSpeaker = ctx.useState true
-                jobs  = ctx.useState []
+                uiJobs  = ctx.useState []
                 connectionState = ctx.useState Disconnected
-                uiThreadInvoke = update
-                showNotification = showNotification
+                invokeOnUIThread = U.invokeOnUIThread
+                showNotification = U.showNotification
                 connection = connection
             }
 
-            window.Closing.Add(fun _ -> model.connection.Value.DisposeAsync() |> ignore)
+            // Jobs.recoverJobs model dispatch |> ignore
                         
             //root view
             DockPanel.create [                
@@ -89,7 +97,7 @@ type Views =
                                         StackPanel.children [
                                             Ellipse.create [
                                                 Shapes.Ellipse.tip $"Service connection: {model.connectionState.Current}"
-                                                Shapes.Ellipse.fill (connectionColor model.connectionState.Current)
+                                                Shapes.Ellipse.fill (U.connectionColor model.connectionState.Current)
                                                 Shapes.Ellipse.width 10.
                                                 Shapes.Ellipse.height 10.
                                                 Shapes.Ellipse.margin (Thickness(5.,0.,5.,0.))

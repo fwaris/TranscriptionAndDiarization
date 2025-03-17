@@ -29,7 +29,10 @@ type App() =
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
-            desktopLifetime.MainWindow <- MainWindow()
+            let win = MainWindow()
+            U.initNotfications(win)
+            win.Closing.Add(fun _ -> Connection.disconnect())
+            desktopLifetime.MainWindow <- win
         | _ -> ()
 
 module Program =

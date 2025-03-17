@@ -21,7 +21,7 @@ module ServiceApi =
     let invoke<'T> (model:Model) dispatch (f:ITranscriptionService->Task<'T>) =
         task {
             try
-                let hub = model.connection.Value
+                let hub = model.connection
                 do! checkConnect hub dispatch
                 let client = TranscriptionClient(hub)
                 return! f client

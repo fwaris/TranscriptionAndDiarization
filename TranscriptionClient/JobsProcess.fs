@@ -3,7 +3,8 @@ open System
 open System.IO
 open TranscriptionInterop
 
-module JobProcess = 
+module JobProcess =     
+
     let downLoadFiles (model:Model) dispatch (job:Job) =
         task {            
             let localPath = job.Path             
@@ -18,7 +19,7 @@ module JobProcess =
     let startPostServiceComplete model dispatch (jobId:string) =
         task {    
             try
-                let job = model.jobs.Current |> List.find(fun j -> j.JobId = jobId)
+                let job = model.runningJobs.Value |> List.find(fun j -> j.JobId = jobId)
                 do! downLoadFiles model dispatch job
                 do! ServiceApi.invoke model dispatch (fun client -> task{ return! client.ClearJob jobId })
                 dispatch (Status {jobId=job.JobId; status=Done})
@@ -33,6 +34,7 @@ module JobProcess =
             for f in Directory.GetFiles(localPath,"*.mp4") do
                 let fileName = Path.GetFileName f
                 dispatch (Status {jobId=job.JobId; status=Uploading fileName})
+                do! Async.Sleep 30000
                 let remoteFile = Path.Combine(remotePath,fileName).Replace("\\","/")
                 File.Copy(f,remoteFile,true)            
         }
@@ -40,7 +42,7 @@ module JobProcess =
     let startPostCreate model dispatch jobId = 
         task {
             try 
-                let job = model.jobs.Current |> List.find(fun j -> j.JobId = jobId)
+                let job = model.runningJobs.Value |> List.find(fun j -> j.JobId = jobId)
                 do! uploadFiles model dispatch job
                 do! ServiceApi.invoke model dispatch (fun client -> task{ return! client.QueueJob job.JobId })            
             with ex ->

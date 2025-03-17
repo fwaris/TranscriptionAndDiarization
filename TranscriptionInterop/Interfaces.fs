@@ -28,12 +28,13 @@ type JobsState =
     | Cancelled                      //job was cancelled
     | Cancelling                     //job is being cancelled 
     | Error of string                
+    | ``Not found in service queue`` //job does not exist in service queue
 
 type JobCreation = {diarize:bool; identifySpeaker:bool}
 type JobCreationResult = {jobId:string; jobPath:string}
-type ConnectionState = Connected | Connecting | Disconnected | Reconnecting
 type ClientUpdate = {jobId:string; status:JobsState}
-type ClientMsg = Status of ClientUpdate | Jobs of int | ConnectionState of ConnectionState
+type JobSyncRequest = {jobIds:string list}
+type JobSyncResponse = {jobsStatus : ClientUpdate list}
 
 type ITranscriptionService =
     abstract member Echo : string -> Task<string>
@@ -41,6 +42,7 @@ type ITranscriptionService =
     abstract member QueueJob : string -> Task
     abstract member CancelJob : string -> Task
     abstract member ClearJob : string -> Task
+    abstract member SyncJobs : JobSyncRequest -> Task<JobSyncResponse>
 
 type ITranscriptionClient =
     abstract member JobsInQueue : int -> Task
@@ -62,4 +64,7 @@ type TranscriptionClient(hub:HubConnection) =
 
         member this.CancelJob(jobId: string): Task = 
             hub.InvokeAsync("CancelJob",jobId)            
+        
+        member this.SyncJobs(req) : Task<JobSyncResponse> =
+            hub.InvokeAsync<JobSyncResponse>("SyncJobs",req)
         
