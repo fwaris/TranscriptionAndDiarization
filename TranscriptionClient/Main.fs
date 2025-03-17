@@ -39,20 +39,16 @@ type Views =
                 | Disconnected -> Brushes.Gray 
                 | Reconnecting -> Brushes.Yellow
             
-            let postServerProcesssing model dispatch jobId =
-                task {
-                    dispatch (Status {jobId=jobId; status=Done})
-                }
 
+            //messages may come from the server or the UI
             let rec dispatch = function 
-                | Status {jobId=id; status= ``Done server processing`` }-> postServerProcesssing model dispatch id |> ignore
+                | Status {jobId=id; status= ``Done server processing`` }-> JobProcess.startPostServiceComplete model dispatch id |> ignore
                 | Status {jobId=id; status= Cancelled } -> JobSubmissionView.removeJob model id
                 | Status {jobId=id; status=status} -> JobSubmissionView.updateJobStatus model id status
-                | Jobs j -> update (fun () -> model.jobsInQueue.Set j)
-                | ConnectionState c -> update (fun () -> model.connectionState.Set c)
+                | Jobs j -> model.uiThreadInvoke (fun _ -> model.jobsInQueue.Set j)
+                | ConnectionState c -> model.uiThreadInvoke (fun _ -> model.connectionState.Set c)
 
             and connection = lazy(Connection.create dispatch)
-
 
             and model = {
                 jobsInQueue = ctx.useState 0            
@@ -61,7 +57,7 @@ type Views =
                 tagSpeaker = ctx.useState true
                 jobs  = ctx.useState []
                 connectionState = ctx.useState Disconnected
-                update = update
+                uiThreadInvoke = update
                 showNotification = showNotification
                 connection = connection
             }
@@ -110,6 +106,14 @@ type Views =
                                     ]
                                 )
                             ]                            
+                            GridSplitter.create [
+                                Grid.column 1
+                                Grid.rowSpan 3
+                                GridSplitter.verticalAlignment VerticalAlignment.Center
+                                GridSplitter.height 50.
+                                GridSplitter.horizontalAlignment HorizontalAlignment.Left                                
+                                GridSplitter.background Brushes.DarkGray                                
+                            ]
                         ]
                     ]
                 ]

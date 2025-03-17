@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="Model.fs" />
     <Compile Include="ServiceApi.fs" />
+    <Compile Include="JobsProcess.fs" />
     <Compile Include="Dialogs.fs" />
     <Compile Include="JobSubmissionView.fs" />
     <Compile Include="JobsListView.fs" />

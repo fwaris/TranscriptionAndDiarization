@@ -4,11 +4,9 @@ open System.IO
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI
-open Avalonia.Threading
 open TranscriptionInterop
 open Avalonia.Layout
 open Avalonia.Media
-open Avalonia.Controls.Primitives
 open Avalonia
 
 module Vls = 
@@ -54,29 +52,32 @@ module JobSubmissionView =
                             IdentifySpeaker= tagSpeaker
                             RemoteFolder=rslt.jobPath
                         }                        
-                    model.update(fun () -> model.jobs.Set (job::model.jobs.Current))
+                    model.uiThreadInvoke(fun () -> 
+                        model.jobs.Set (job::model.jobs.Current)
+                        JobProcess.startPostCreate model dispatch rslt.jobId |> ignore
+                    )
             with ex ->
                 model.showNotification "" $"Error submitting job: {ex.Message}"
         }
 
     let updateJobStatus model jobId status = 
         let js = model.jobs.Current |> List.map (fun j -> if j.JobId = jobId then {j with Status=status} else j)
-        model.update (fun () -> model.jobs.Set js)
+        model.uiThreadInvoke(fun _ -> model.jobs.Set js)
 
     let removeJob model jobId = 
         let js = model.jobs.Current |> List.filter(fun x -> x.JobId <> jobId)
-        model.jobs.Set js
+        model.uiThreadInvoke (fun _ -> model.jobs.Set js)
             
-    let cancelJob window (model:Model) dispatch jobId = 
+    let cancelOrRemoveJob window (model:Model) dispatch jobId = 
         task {
             let job = model.jobs.Current |> List.tryFind (fun x -> x.JobId = jobId)
             match job with 
             | Some job -> 
-                if job.IsRunning && not job.Status.IsCancelling then 
+                if job.IsRunning() && not job.Status.IsCancelling then 
                     let dlg = YesNoDialog("Are you sure you want to cancel this job?") 
                     let! result = dlg.ShowDialogAsync(window)
                     if result then
-                        if job.IsRunning then
+                        if job.IsRunning() then
                             updateJobStatus model jobId Cancelling
                             do! ServiceApi.invoke model dispatch (fun client -> task{ return! client.CancelJob jobId })
                 elif job.Status.IsCancelled || job.Status.IsDone then 

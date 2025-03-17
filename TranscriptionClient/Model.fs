@@ -11,6 +11,7 @@ module Connection =
         let connection =
             HubConnectionBuilder()
                 .AddJsonProtocol(fun o -> o.PayloadSerializerOptions <- Ser.serOptions())
+                .WithAutomaticReconnect()
                 .WithUrl("http://localhost:5000/hub")  
                 .Build()
 
@@ -20,7 +21,10 @@ module Connection =
         connection        
 
 type Job = {JobId:string; Path:string; StartTime:DateTime; Status:JobsState; Diarize : bool; IdentifySpeaker : bool; RemoteFolder:string}
-    with member this.IsRunning = this.Status <> Done || this.Status <> Cancelled || not this.Status.IsError
+    with member this.IsRunning() =
+            match this.Status with
+            | Error _ | Done | Cancelled -> false
+            | _ -> true
 
 type Model = {
     jobsInQueue : IWritable<int>
@@ -30,7 +34,7 @@ type Model = {
     jobs : IWritable<Job list> 
     connectionState :IWritable<ConnectionState>
     showNotification : string->string->unit
-    update : (unit->unit) -> unit
+    uiThreadInvoke : (unit->unit) -> unit
     connection : Lazy<HubConnection>
 }
 

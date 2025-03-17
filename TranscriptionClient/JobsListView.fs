@@ -36,12 +36,12 @@ module JobsListView =
                                         DataTemplateView.create<_,_>(fun (item:Job) ->
                                             Grid.create [
                                                 Grid.rowDefinitions "*,*,*,*,*,*,*"
-                                                Grid.columnDefinitions "100.,*"
+                                                Grid.columnDefinitions "110.,*"
                                                 Grid.margin 2
                                                 Grid.children [  
                                                     Button.create [
                                                         Button.content "\u0078"
-                                                        Button.onClick (fun _ -> JobSubmissionView.cancelJob window model dispatch item.JobId |> ignore)
+                                                        Button.onClick (fun _ -> JobSubmissionView.cancelOrRemoveJob window model dispatch item.JobId |> ignore)
                                                         Button.margin 2
                                                         Grid.row 0
                                                         Grid.column 0
@@ -54,7 +54,7 @@ module JobsListView =
                                                     Vls.textBlock item.Path [Grid.row 2; Grid.column 1; TextBlock.textWrapping TextWrapping.Wrap]
                                                     Vls.textBlock "Start Time:" [Grid.row 3]
                                                     Vls.textBlock (item.StartTime.ToShortTimeString()) [Grid.row 3; Grid.column 1]
-                                                    Vls.textBlock "Status:" [Grid.row 4]
+                                                    Vls.textBlock "Status:" [Grid.row 4; TextBlock.textWrapping TextWrapping.Wrap]
                                                     Vls.textBlock (string item.Status) [Grid.row 4; Grid.column 1]
                                                     Vls.textBlock "Diarize:" [Grid.row 5]
                                                     Vls.textBlock (sprintf "%A" item.Diarize) [Grid.row 5; Grid.column 1]                                                    

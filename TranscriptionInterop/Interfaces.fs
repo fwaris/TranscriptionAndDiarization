@@ -35,7 +35,6 @@ type ConnectionState = Connected | Connecting | Disconnected | Reconnecting
 type ClientUpdate = {jobId:string; status:JobsState}
 type ClientMsg = Status of ClientUpdate | Jobs of int | ConnectionState of ConnectionState
 
-
 type ITranscriptionService =
     abstract member Echo : string -> Task<string>
     abstract member CreateJob : JobCreation -> Task<JobCreationResult>
@@ -56,7 +55,7 @@ type TranscriptionClient(hub:HubConnection) =
             hub.InvokeAsync<JobCreationResult>("CreateJob",jobCreaton)
             
         member this.QueueJob(jobId: string): Task = 
-            hub.InvokeAsync("StartJob",jobId)
+            hub.InvokeAsync("QueueJob",jobId)
 
         member this.ClearJob(jobId: string): Task = 
             hub.InvokeAsync("ClearJob",jobId)
