@@ -78,7 +78,7 @@ module JobSubmissionView =
                                     CheckBox.content "Diarize"
                                     CheckBox.isChecked model.diarize
                                     CheckBox.onChecked (fun isChecked -> dispatch (Diarize true))
-                                    CheckBox.onUnchecked (fun isChecked -> dispatch (Diarize false))
+                                    CheckBox.onUnchecked (fun isChecked -> dispatch (Diarize false); dispatch (TagSpeaker false))
                                     CheckBox.margin 2
                                     CheckBox.verticalAlignment VerticalAlignment.Center
                                 ]

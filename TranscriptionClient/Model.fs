@@ -14,7 +14,9 @@ type Job = {JobId:string; Path:string; StartTime:DateTime; Status:JobsState; Dia
 type ConnectionState = Connected | Connecting | Disconnected | Reconnecting
 
 exception JobException of string * string
+
 type JobCancelResult = Cancel | Remove | Ignore
+
 type ClientMsg = 
     | Initialize 
     | FromService of SrvJobStatus 

@@ -32,16 +32,25 @@ module JobProcess =
                 return raise (JobException(jobId,ex.Message))
         }
 
+    let changeExt (path:string) ext =
+        let fn = Path.GetFileNameWithoutExtension(path)
+        Path.Combine(Path.GetDirectoryName(path),fn + ext)
+
+    let vttExists path = File.Exists(changeExt path ".vtt")
+
     let uploadFiles model job = 
         task {
             try 
                 let localPath = job.Path.Replace("\\","/")
                 let remotePath = job.RemoteFolder
                 let dispatch = disp model
-                for f in Directory.GetFiles(localPath,"*.mp4") do
+                let files = 
+                    Directory.GetFiles(localPath,"*.mp4") 
+                    |> Array.filter (vttExists>>not)
+                for f in files do
                     let fileName = Path.GetFileName f
                     dispatch (FromService {jobId=job.JobId; status=Uploading fileName})
-                    do! Async.Sleep 30000
+                    //do! Async.Sleep 30000
                     let remoteFile = Path.Combine(remotePath,fileName).Replace("\\","/")
                     File.Copy(f,remoteFile,true)            
             with ex ->
@@ -83,7 +92,7 @@ module JobProcess =
                     }
                 return job    
             with ex ->
-                return raise (JobException("",ex.Message))
+                return raise ex //(JobException("",ex.Message))
         }
 
     let cancelJob (model,jobId) =

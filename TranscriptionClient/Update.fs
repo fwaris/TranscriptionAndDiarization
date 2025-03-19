@@ -45,8 +45,14 @@ module U =
             Notify $"There is an existing job for the folder '({model.localFolder}'"                        
         elif Directory.Exists model.localFolder |> not then
             Notify $"Folder does not exist '{model.localFolder}'"
-        else
-           CreateJob
+        else 
+            let mp4s = Directory.GetFiles(model.localFolder,"*.mp4") 
+            if mp4s.Length = 0 then
+                Notify $"No mp4 files found in '{model.localFolder}'"
+            elif  (mp4s |> Array.filter (JobProcess.vttExists>>not)).Length = 0 then
+                Notify $"All mp4 files in '{model.localFolder}' already have vtt files"
+            else
+                CreateJob
 
     let tryCancel (model,jobId,win) = 
         task {            

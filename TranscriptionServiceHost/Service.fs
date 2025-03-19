@@ -9,7 +9,7 @@ open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Hosting
 open FSharp.Control
 open TranscriptionInterop
-
+open FastTranscriber
 
 type TranscriberHub(cfg:IConfiguration) = 
     inherit Hub<ITranscriptionClient>()
@@ -26,38 +26,54 @@ type TranscriberHub(cfg:IConfiguration) =
             task{return arg1}
 
         member this.CreateJob(jobCreation:JobCreation): Threading.Tasks.Task<JobCreationResult> =             
-            Log.info $"CreateJob - {this.Context.ConnectionId}"            
             let jobId = Jobs.newId()
             let path = Config.jobPath cfg jobId
+            let txnJob = {
+                transcriberPath = Config.transcriberPath cfg
+                ffmpegPath = Config.ffmpegPath cfg
+                inputFolder = path
+                outputFolder = path
+                diarize = jobCreation.diarize
+                processId = None
+                isCancelled = false                
+            }
+            Log.info $"CreateJob - {this.Context.ConnectionId}"            
             let diarize = jobCreation.diarize
             let identifySpeaker = jobCreation.identifySpeaker
-            let j = Jobs.create jobId path this.Context.ConnectionId this.Clients.Caller diarize identifySpeaker
-            Jobs.agent.Post(AddJob j)
+            let j = Jobs.create 
+                            jobId 
+                            path 
+                            this.Context.ConnectionId 
+                            this.Clients.Caller 
+                            diarize 
+                            identifySpeaker 
+                            txnJob
+            JobAgent.agent.Post(AddJob j)
             task {return {jobId = j.JobId; jobPath = j.JobPath}}
             
         member this.QueueJob(jobId: string): Threading.Tasks.Task = 
             task {                
                 Log.info $"QueueJob - {this.Context.ConnectionId}"
-                Jobs.agent.Post(Queue jobId)
+                JobAgent.agent.Post(Queue jobId)
             }
 
         member this.ClearJob(jobId: string): Threading.Tasks.Task =
             task {
                 Log.info $"ClearJob - {this.Context.ConnectionId}"
-                Jobs.agent.Post(JobAction.Done jobId)                
+                JobAgent.agent.Post(JobAction.Done jobId)                
             }
 
         member this.CancelJob (jobId: string): Task = 
             task {
                 Log.info $"CancelJob - {this.Context.ConnectionId}"
-                Jobs.agent.Post(Cancel jobId)                
+                JobAgent.agent.Post(Cancel jobId)                
             }
 
         //this is normally used to sync the client with the server after the client has been restarted
         member this.SyncJobs(req) : Task<JobSyncResponse> =
             task {
                 Log.info $"SyncJobs - {this.Context.ConnectionId}"
-                let! updates = Jobs.agent.PostAndAsyncReply(fun rep -> SyncStatus(this.Clients.Caller,req.jobIds,rep))
+                let! updates = JobAgent.agent.PostAndAsyncReply(fun rep -> SyncStatus(this.Clients.Caller,req.jobIds,rep))
                 return {jobsStatus = updates}
             }
             
@@ -72,7 +88,7 @@ type Service(hub:IHubContext<TranscriberHub, ITranscriptionClient>, cfg:IConfigu
         async {
             while not ctx.IsCancellationRequested do 
                 try 
-                    let! numJobs = Jobs.agent.PostAndAsyncReply(fun rep -> NumbJobs rep)
+                    let! numJobs = JobAgent.agent.PostAndAsyncReply(fun rep -> NumbJobs rep)
                     do! hub.Clients.All.JobsInQueue (numJobs) |> Async.AwaitTask
                 with ex -> 
                     Log.exn(ex,"startNotification")
@@ -87,9 +103,11 @@ type Service(hub:IHubContext<TranscriberHub, ITranscriptionClient>, cfg:IConfigu
         Task.CompletedTask
     override this.StartAsync(cancellationToken: System.Threading.CancellationToken): System.Threading.Tasks.Task =
         startNotification() |> Async.Start
+        let processor = JobProcessor.processor //MockJobProcessor.processor  
+        JobAgent.createProcessor ctx.Token processor
         Task.CompletedTask        
     override this.StopAsync(cancellationToken: System.Threading.CancellationToken): System.Threading.Tasks.Task =
         ctx.Cancel()
-        Jobs.jobQueue.Writer.Complete()
+        JobAgent.jobQueue.Writer.Complete()
         Task.CompletedTask
 
