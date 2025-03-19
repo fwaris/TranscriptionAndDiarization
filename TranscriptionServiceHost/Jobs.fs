@@ -38,7 +38,7 @@ type JobAction =
     | Cancel of string 
     | Done of string 
     | NumbJobs of AsyncReplyChannel<int>
-    | SyncStatus of (ITranscriptionClient*string list * AsyncReplyChannel<ClientUpdate list>)
+    | SyncStatus of (ITranscriptionClient*string list * AsyncReplyChannel<SrvJobStatus list>)
 
 module Jobs = 
     let jobQueue = System.Threading.Channels.Channel.CreateUnbounded<Job>()
@@ -67,9 +67,9 @@ module Jobs =
         |> Seq.toArray 
         |> String
 
-    let create jobPath clientId client diarize identifySpeaker= 
+    let create jobId jobPath clientId client diarize identifySpeaker= 
         {
-            JobId = newId()
+            JobId = jobId
             CreateTime = DateTime.Now
             JobPath = jobPath
             Diarize = diarize

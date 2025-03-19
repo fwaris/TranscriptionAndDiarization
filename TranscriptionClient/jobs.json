@@ -1,15 +1,1 @@
-{
-  "contents": [
-    {
-      "JobId": "5jszIYbOlUisVU7631t0ug",
-      "Path": "E:\\s\\transcriberTest",
-      "StartTime": "2025-03-17T15:45:25.8467122-04:00",
-      "Status": {
-        "Case": "Done"
-      },
-      "Diarize": true,
-      "IdentifySpeaker": true,
-      "RemoteFolder": "E:/transcription_test/jobs/ebTSooz1HUG9L43NB0pxmQ"
-    }
-  ]
-}
+[]

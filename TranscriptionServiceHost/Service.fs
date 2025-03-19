@@ -26,11 +26,12 @@ type TranscriberHub(cfg:IConfiguration) =
             task{return arg1}
 
         member this.CreateJob(jobCreation:JobCreation): Threading.Tasks.Task<JobCreationResult> =             
-            Log.info $"CreateJob - {this.Context.ConnectionId}"
-            let path = Config.jobPath cfg (Jobs.newId())
+            Log.info $"CreateJob - {this.Context.ConnectionId}"            
+            let jobId = Jobs.newId()
+            let path = Config.jobPath cfg jobId
             let diarize = jobCreation.diarize
             let identifySpeaker = jobCreation.identifySpeaker
-            let j = Jobs.create path this.Context.ConnectionId this.Clients.Caller diarize identifySpeaker
+            let j = Jobs.create jobId path this.Context.ConnectionId this.Clients.Caller diarize identifySpeaker
             Jobs.agent.Post(AddJob j)
             task {return {jobId = j.JobId; jobPath = j.JobPath}}
             

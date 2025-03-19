@@ -1,58 +1,61 @@
 namespace TranscriptionClient
-open Microsoft.AspNetCore.SignalR.Client
-open Microsoft.Extensions.DependencyInjection
 open TranscriptionInterop
-open System.Threading.Tasks
 open System
-open Avalonia.FuncUI
+open System.Threading.Channels
 
 type Job = {JobId:string; Path:string; StartTime:DateTime; Status:JobsState; Diarize : bool; IdentifySpeaker : bool; RemoteFolder:string}
-    with member this.IsRunning() =
+    with 
+        member this.IsRunning() =
             match this.Status with
             | Error _ | Done | Cancelled -> false
             | _ -> true
+        member this.SetStatus status = {this with Status=status}
 
 type ConnectionState = Connected | Connecting | Disconnected | Reconnecting
 
+exception JobException of string * string
+type JobCancelResult = Cancel | Remove | Ignore
 type ClientMsg = 
-    | Status of ClientUpdate 
-    | Jobs of int 
+    | Initialize 
+    | FromService of SrvJobStatus 
+    | ServiceJobCount of int 
     | ConnectionState of ConnectionState
-    | UpdateJobs of Job list
-
-type Model = {
-    mutable runningJobs  : Ref<Job list>
-    jobsInQueue : IWritable<int>
-    localFolder : IWritable<string>
-    diarize : IWritable<bool>
-    tagSpeaker : IWritable<bool>
-    uiJobs : IWritable<Job list> 
-    connectionState :IWritable<ConnectionState>
-    showNotification : string->string->unit
-    invokeOnUIThread : (unit->unit) -> unit
-    connection : HubConnection
-}
-
-module Connection =     
-    let mutable private _dispatch = fun (msg:ClientMsg) -> ()
+    | Notify of string
+    | Exn of exn
+    | UpsertJobs of Job list
+    | RemoveJob of string
+    | TryCancelJob of string
+    | TryCancelJobResult of string * JobCancelResult
+    | StartUpload of string
+    | DoneUpload of string
+    | StartDownload of string
+    | DoneDownload of Job
+    | CreateJob
+    | JobCreated of Job
+    | JobError of exn
+    | Diarize of bool
+    | TagSpeaker of bool
+    | LocalFolder of string
+    | OpenFolder
+    | SubmitJob
     
-    let private connection = lazy(
-        let connection =
-            HubConnectionBuilder()
-                .AddJsonProtocol(fun o -> o.PayloadSerializerOptions <- Ser.serOptions())
-                .WithAutomaticReconnect()
-                .WithUrl("http://localhost:5000/hub")  
-                .Build()
-        connection.add_Closed(fun exn -> _dispatch (ConnectionState Disconnected); Task.CompletedTask)
-        connection.add_Reconnected(fun m -> _dispatch (ConnectionState Connected); Task.CompletedTask)
-        connection.add_Reconnecting(fun exn -> _dispatch (ConnectionState Reconnecting); Task.CompletedTask)
-        connection)
+type Model = {
+    jobs : Job list
+    jobsInQueue : int
+    connectionState : ConnectionState
+    localFolder : string
+    diarize : bool
+    tagSpeaker : bool    
+    mailbox : System.Threading.Channels.Channel<ClientMsg>
+}
+with static member Default win = 
+            {
+                jobs=[]
+                jobsInQueue=0
+                connectionState=Disconnected
+                localFolder = null
+                diarize = true
+                tagSpeaker = true
+                mailbox=Channel.CreateBounded<ClientMsg>(30)
+            } 
 
-    let get (dispatch:ClientMsg->unit) = 
-        _dispatch <- dispatch
-        connection.Value
-
-    let disconnect() = connection.Value.StopAsync() |> ignore
-
-module Data =
-    let jobs : Ref<Job list> = ref []

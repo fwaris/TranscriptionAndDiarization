@@ -1,14 +1,13 @@
 ﻿namespace TranscriptionClient
 
-open System.Collections.ObjectModel
+open Elmish
 open Avalonia
-open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
-open Avalonia.Data
-open Avalonia.FuncUI.Hosts
 open Avalonia.Themes.Fluent
 open Avalonia.FuncUI
-open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Elmish
+open Avalonia.FuncUI.Hosts
+open Avalonia.Threading
 
 type MainWindow() as this =
     inherit HostWindow()
@@ -16,8 +15,13 @@ type MainWindow() as this =
         base.Title <- "Transcription Client"
         base.Width <- 500.0
         base.Height <- 400.0
-        this.Content <- Views.main this
 
+        Program.mkProgram Update.init (Update.update this) Views.main
+        |> Program.withHost this
+        |> Program.withSubscription Update.subscriptions
+        |> Program.withConsoleTrace
+        |> Program.runWithAvaloniaSyncDispatch ()
+            
 type App() =
     inherit Application()
 

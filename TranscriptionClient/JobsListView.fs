@@ -11,9 +11,8 @@ open Avalonia.Media
 open Avalonia.Controls.Primitives
 open Avalonia
 
-module JobsListView =
-
-    let create window model dispatch = 
+module JobsListView =               
+    let create model dispatch = 
         Border.create [
             Grid.column 1
             Grid.rowSpan 2
@@ -31,7 +30,7 @@ module JobsListView =
                             ScrollViewer.verticalScrollBarVisibility ScrollBarVisibility.Auto
                             ScrollViewer.content (
                                 ListBox.create [
-                                    ListBox.dataItems model.uiJobs.Current
+                                    ListBox.dataItems model.jobs
                                     ListBox.itemTemplate (
                                         DataTemplateView.create<_,_>(fun (item:Job) ->
                                             Grid.create [
@@ -41,7 +40,7 @@ module JobsListView =
                                                 Grid.children [  
                                                     Button.create [
                                                         Button.content "\u0078"
-                                                        Button.onClick (fun _ -> JobSubmissionView.cancelOrRemoveJob window model dispatch item.JobId |> ignore)
+                                                        Button.onClick (fun _ -> dispatch (TryCancelJob item.JobId))
                                                         Button.margin 2
                                                         Grid.row 0
                                                         Grid.column 0
@@ -71,4 +70,4 @@ module JobsListView =
                 ]
             )
         ]
-    
+

@@ -4,6 +4,7 @@ open System.Threading.Tasks
 open Microsoft.AspNetCore.SignalR.Client
 open System.Text.Json
 open System.Text.Json.Serialization
+
 module Ser =
 
     let serOptions() = 
@@ -32,9 +33,9 @@ type JobsState =
 
 type JobCreation = {diarize:bool; identifySpeaker:bool}
 type JobCreationResult = {jobId:string; jobPath:string}
-type ClientUpdate = {jobId:string; status:JobsState}
+type SrvJobStatus = {jobId:string; status:JobsState}
 type JobSyncRequest = {jobIds:string list}
-type JobSyncResponse = {jobsStatus : ClientUpdate list}
+type JobSyncResponse = {jobsStatus : SrvJobStatus list}
 
 type ITranscriptionService =
     abstract member Echo : string -> Task<string>
@@ -46,7 +47,7 @@ type ITranscriptionService =
 
 type ITranscriptionClient =
     abstract member JobsInQueue : int -> Task
-    abstract member JobState : ClientUpdate -> Task
+    abstract member JobState : SrvJobStatus -> Task
 
 type TranscriptionClient(hub:HubConnection) = 
         

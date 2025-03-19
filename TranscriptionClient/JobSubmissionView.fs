@@ -21,46 +21,7 @@ module Vls =
 
 module JobSubmissionView = 
 
-    let getFolder window (localFolder:IWritable<_>) =
-        async{
-            match! TranscriptionClient.Dialogs.openFileDialog(window) with
-            | Some f -> localFolder.Set f
-            | None -> ()
-        }
-
-    let submitJob (model:Model) dispatch =
-        task {
-            try 
-                if String.IsNullOrWhiteSpace model.localFolder.Current then 
-                    model.showNotification "" "Please select a folder containing video files" 
-                elif model.runningJobs.Value |> List.exists(fun j -> j.Path = model.localFolder.Current ) then
-                    model.showNotification "" $"There is an existing job for the folder '{model.localFolder.Current}'"                        
-                elif Directory.Exists model.localFolder.Current |> not then
-                    model.showNotification "" $"Folder does not exist '{model.localFolder.Current}'"
-                else
-                    do! Jobs.submitJob model dispatch 
-            with ex ->
-                model.showNotification "" $"Error submitting job: {ex.Message}"
-        }
-
-    let cancelOrRemoveJob window (model:Model) dispatch jobId = 
-        task {
-            let job = model.runningJobs.Value |> List.tryFind (fun x -> x.JobId = jobId)
-            match job with 
-            | Some job -> 
-                if job.IsRunning() && not job.Status.IsCancelling then 
-                    let dlg = YesNoDialog("Are you sure you want to cancel this job?") 
-                    let! result = dlg.ShowDialogAsync(window)
-                    if result then
-                        if job.IsRunning() then
-                            Jobs.cancelJob model jobId dispatch |> ignore
-                elif job.Status.IsCancelled || job.Status.IsDone then 
-                    Jobs.removeJob model jobId
-            | None -> ()
-        }        
-               
-
-    let create window (model:Model) dispatch =
+    let create (model:Model) dispatch =
         Border.create [
             Grid.row 0
             Border.horizontalAlignment HorizontalAlignment.Stretch
@@ -88,7 +49,7 @@ module JobSubmissionView =
                                 Grid.row 0
                                 Grid.column 1                        
                                 TextBlock.margin (Thickness(2.,0.,0.,2.))
-                                TextBlock.text model.localFolder.Current; 
+                                TextBlock.text model.localFolder
                                 TextBlock.horizontalAlignment HorizontalAlignment.Stretch
                                 TextBlock.verticalAlignment VerticalAlignment.Center
                                 TextBlock.textWrapping TextWrapping.Wrap                            
@@ -100,7 +61,7 @@ module JobSubmissionView =
                             Grid.column 2
                             Button.content "..."
                             Button.tip "Select a folder containing video (*.mp4*) files"
-                            Button.onClick (fun _ -> getFolder window model.localFolder |> Async.Start )
+                            Button.onClick (fun _ -> dispatch OpenFolder)
                             Button.margin 4.0
                             Button.verticalAlignment VerticalAlignment.Center
                             Button.horizontalAlignment HorizontalAlignment.Left
@@ -115,19 +76,19 @@ module JobSubmissionView =
                                 CheckBox.create [
                                     CheckBox.tip "Identifies distinct speakers in the audio transcript but takes longer to run"
                                     CheckBox.content "Diarize"
-                                    CheckBox.isChecked model.diarize.Current
-                                    CheckBox.onChecked (fun isChecked -> model.diarize.Set true)
-                                    CheckBox.onUnchecked (fun isChecked -> model.diarize.Set false)
+                                    CheckBox.isChecked model.diarize
+                                    CheckBox.onChecked (fun isChecked -> dispatch (Diarize true))
+                                    CheckBox.onUnchecked (fun isChecked -> dispatch (Diarize false))
                                     CheckBox.margin 2
                                     CheckBox.verticalAlignment VerticalAlignment.Center
                                 ]
                                 CheckBox.create [
                                     CheckBox.tip "Identifes a specific speaker in the audio transcript. This particular speaker is configured in the service and cannot be changed from the client"
                                     CheckBox.content "Identify Speaker"
-                                    CheckBox.isEnabled model.diarize.Current
-                                    CheckBox.isChecked model.tagSpeaker.Current
-                                    CheckBox.onChecked (fun isChecked -> model.tagSpeaker.Set true)
-                                    CheckBox.onUnchecked (fun isChecked -> model.tagSpeaker.Set false)
+                                    CheckBox.isEnabled model.diarize
+                                    CheckBox.isChecked model.tagSpeaker
+                                    CheckBox.onChecked (fun isChecked -> dispatch (TagSpeaker true))
+                                    CheckBox.onUnchecked (fun isChecked -> dispatch (TagSpeaker false))
                                     CheckBox.margin 2
                                     CheckBox.verticalAlignment VerticalAlignment.Center
                                 ]
@@ -137,7 +98,7 @@ module JobSubmissionView =
                             Grid.row 2
                             Grid.columnSpan 3
                             Button.content "Submit Transcription Job"
-                            Button.onClick (fun _ -> submitJob model dispatch |> ignore)
+                            Button.onClick (fun _ -> dispatch SubmitJob)
                             Button.margin 2
                             Button.verticalAlignment VerticalAlignment.Center
                         ]
