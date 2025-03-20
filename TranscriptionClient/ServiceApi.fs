@@ -27,3 +27,8 @@ module ServiceApi =
             with ex ->
                  return raise ex
         }
+
+    let ping model = 
+        task {
+            return! invoke<string> model (fun c -> c.Echo("test"))
+        }

@@ -10,7 +10,6 @@ open TranscriptionInterop
 module U =
     open Avalonia.Threading
     open System.IO
-    open Avalonia.FuncUI.Hosts
     //notificatons
     let mutable private notificationManager : Notifications.WindowNotificationManager = Unchecked.defaultof<_>
 
@@ -121,6 +120,7 @@ module Update =
             | FromService ({jobId=id; status= ``Done server processing`` } as c) -> Jobs.updateStatus model id c.status,Cmd.ofMsg (StartDownload id)
             | FromService {jobId=id; status= Cancelled } -> Jobs.removeJob model id, Cmd.none
             | FromService s -> Jobs.updateStatus model s.jobId s.status, Cmd.none
+            | Connect -> ServiceApi.ping model |> ignore; model,Cmd.none
             //jobs  
             | OpenFolder -> model,Cmd.OfAsync.perform U.getFolder win LocalFolder
             | LocalFolder f -> {model with localFolder=f}, Cmd.none

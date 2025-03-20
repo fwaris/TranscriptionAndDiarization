@@ -19,6 +19,7 @@ type JobCancelResult = Cancel | Remove | Ignore
 
 type ClientMsg = 
     | Initialize 
+    | Connect
     | FromService of SrvJobStatus 
     | ServiceJobCount of int 
     | ConnectionState of ConnectionState

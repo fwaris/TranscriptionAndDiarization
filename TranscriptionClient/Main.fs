@@ -3,11 +3,9 @@ namespace TranscriptionClient
 #nowarn "40"
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI
 open Avalonia.Layout
 open Avalonia.Media
 open Avalonia
-
 
 [<AbstractClass; Sealed>]
 type Views =
@@ -35,13 +33,18 @@ type Views =
                                 StackPanel.create [
                                     StackPanel.orientation Orientation.Horizontal
                                     StackPanel.children [
-                                        Ellipse.create [
-                                            Shapes.Ellipse.tip $"Service connection: {model.connectionState}"
-                                            Shapes.Ellipse.fill (U.connectionColor model.connectionState)
-                                            Shapes.Ellipse.width 10.
-                                            Shapes.Ellipse.height 10.
-                                            Shapes.Ellipse.margin (Thickness(5.,0.,5.,0.))
-                                            Shapes.Ellipse.verticalAlignment VerticalAlignment.Center
+                                        Button.create [
+                                            Button.background Brushes.Transparent
+                                            Button.content (
+                                                Ellipse.create [
+                                                    Shapes.Ellipse.tip $"Service connection: {model.connectionState}"
+                                                    Shapes.Ellipse.fill (U.connectionColor model.connectionState)
+                                                    Shapes.Ellipse.width 10.
+                                                    Shapes.Ellipse.height 10.
+                                                    Shapes.Ellipse.margin (Thickness(5.,0.,5.,0.))
+                                                    Shapes.Ellipse.verticalAlignment VerticalAlignment.Center
+                                                ])
+                                            Button.onClick (fun _ -> dispatch Connect)
                                         ]
                                         Vls.textBlock 
                                             (if model.connectionState.IsDisconnected then "" else $"Total jobs in service queue: {model.jobsInQueue}")
