@@ -26,28 +26,23 @@ type TranscriberHub(cfg:IConfiguration) =
             task{return arg1}
 
         member this.CreateJob(jobCreation:JobCreation): Threading.Tasks.Task<JobCreationResult> =             
-            let jobId = Jobs.newId()
-            let path = Config.jobPath cfg jobId
-            let txnJob = {
-                transcriberPath = Config.transcriberPath cfg
-                ffmpegPath = Config.ffmpegPath cfg
-                inputFolder = path
-                outputFolder = path
-                diarize = jobCreation.diarize
-                processId = None
-                isCancelled = false                
-            }
             Log.info $"CreateJob - {this.Context.ConnectionId}"            
+            let diarize = if jobCreation.identifySpeaker then true else jobCreation.diarize
+            let jobId = Jobs.newId()
+            let jobPath = Config.jobPath cfg jobId
+            let txnJob = Jobs.transcriptionJob cfg jobPath diarize
+            let idJob = Jobs.idenficationJob cfg jobPath
             let diarize = jobCreation.diarize
             let identifySpeaker = jobCreation.identifySpeaker
             let j = Jobs.create 
                             jobId 
-                            path 
+                            jobPath 
                             this.Context.ConnectionId 
                             this.Clients.Caller 
                             diarize 
                             identifySpeaker 
                             txnJob
+                            idJob
             JobAgent.agent.Post(AddJob j)
             task {return {jobId = j.JobId; jobPath = j.JobPath}}
             

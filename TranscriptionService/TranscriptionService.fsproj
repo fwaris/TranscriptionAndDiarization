@@ -13,6 +13,7 @@
     <Compile Include="GraphApi.fs" />
     <Compile Include="ShowModel.fs" />
     <Compile Include="EmbedAudio.fs" />
+    <Compile Include="IdentifySpeaker.fs" />
     <Compile Include="FastTranscriber.fs" />
     
   </ItemGroup>
@@ -21,8 +22,9 @@
     <PackageReference Include="azure.security.keyvault.secrets" Version="4.7.0" />
     <PackageReference Include="FFMpegCore" Version="5.2.0" />
     <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
+    <PackageReference Include="FsPickler" Version="5.3.2" />
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.69.1" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.70.0" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.21.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="System.Numerics.Tensors" Version="9.0.3" />

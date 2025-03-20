@@ -15,6 +15,11 @@
     <Compile Include="ShowModel.fs" />
     <Compile Include="EmbedAudio.fs" />
     <Compile Include="Program.fs" />
+    <None Include="scripts\DownloadFiles.fsx" />
+    <None Include="scripts\ExtractEmbeddings.fsx" />
+    <None Include="scripts\SpeakerAssignment.fsx" />
+    <None Include="scripts\TestVision.fsx" />
+    <None Include="scripts\verifyspeech.fsx" />
     <None Include="scripts\packages.fsx" />
     <None Include="scripts\testspeech.fsx" />
     <None Include="scripts\FastTranscriber.fsx" />

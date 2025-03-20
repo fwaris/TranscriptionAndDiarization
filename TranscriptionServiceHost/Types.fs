@@ -2,6 +2,7 @@ namespace TranscriptionServiceHost
 open System
 open TranscriptionInterop
 open FastTranscriber
+open IdentitySpeaker
 
 module Config = 
     open Microsoft.Extensions.Configuration
@@ -16,9 +17,11 @@ module Config =
             Log.exn(ex,"Config.jobPath")
         path
 
+    let speakerName (cfg:IConfiguration) = $"""{cfg.["SpeakerName"]}"""  ///to handle possible null
     let transcriberPath (cfg:IConfiguration) = cfg.["TranscriberPath"]
-
     let ffmpegPath (cfg:IConfiguration) = cfg.["FfmpegPath"]
+    let speakerEmbeddings  (cfg:IConfiguration) = cfg.["SpeakerEmbeddings"]
+    let audioEmbeddingsModelPath (cfg:IConfiguration) = cfg.["AudioEmbeddingModelPath"]
 
 type Job = {
     JobId : string    
@@ -28,7 +31,8 @@ type Job = {
     IdenifySpeaker : bool 
     mutable Client : ITranscriptionClient
     mutable status : JobsState
-    transcriptionJob : TranscriptionJob
+    TranscriptionJob : TranscriptionJob
+    IdentificationJob : IdentificationJob    
 }
 
 type JobAction = 

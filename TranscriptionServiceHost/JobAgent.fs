@@ -9,11 +9,11 @@ module JobAgent =
     let processJob processor job = 
         task {
             try 
-                if not job.transcriptionJob.isCancelled then 
+                if not job.TranscriptionJob.isCancelled then 
                     do! processor.transcribe job
-                if not job.transcriptionJob.isCancelled && job.Diarize && job.IdenifySpeaker then 
+                if not job.TranscriptionJob.isCancelled && job.Diarize && job.IdenifySpeaker then 
                     do! processor.identifySpeaker job
-                if not job.transcriptionJob.isCancelled then
+                if not job.TranscriptionJob.isCancelled then
                     do! Jobs.updateClient job JobsState.``Done server processing``  None                  
             with ex -> 
                 Log.exn(ex,"Jobs.processJob")
@@ -23,7 +23,7 @@ module JobAgent =
     
     let terminateJob job  =
         task {
-            match job.transcriptionJob.processId with 
+            match job.TranscriptionJob.processId with 
             | Some pid -> 
                 try 
                     Log.info $"terminating job {job.JobId}"
@@ -86,7 +86,7 @@ module JobAgent =
                     | Cancel jobId ->
                         match find jobId with
                         | Some job -> 
-                            job.transcriptionJob.isCancelled <- true
+                            job.TranscriptionJob.isCancelled <- true
                             terminateJob job |> ignore
                             remove jobId
                             Jobs.updateClient job JobsState.Cancelled (numJobs()) |> ignore                            

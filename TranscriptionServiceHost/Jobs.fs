@@ -5,6 +5,7 @@ open Microsoft.Extensions.Configuration
 open FSharp.Control
 open TranscriptionInterop
 open FastTranscriber
+open IdentitySpeaker
 
 module Jobs =     
     let updateClient (job:Job) (status:JobsState) numJobs = 
@@ -15,7 +16,7 @@ module Jobs =
                 match numJobs with 
                 | Some n ->  do! job.Client.JobsInQueue n 
                 | None        -> ()
-                if job.transcriptionJob.isCancelled then 
+                if job.TranscriptionJob.isCancelled then 
                     job.status <- JobsState.Cancelled
                 else
                     job.status <- status
@@ -31,7 +32,26 @@ module Jobs =
         |> Seq.toArray 
         |> String
 
-    let create jobId jobPath clientId client diarize identifySpeaker txnJob = 
+    let idenficationJob (cfg:IConfiguration) jobPath =          
+        {
+            SpeakerName = Config.speakerName cfg
+            EmbeddingsPath = Config.speakerEmbeddings cfg
+            InputFolder = jobPath
+            ModelPath = Config.audioEmbeddingsModelPath cfg
+        }
+
+    let transcriptionJob (cfg:IConfiguration) jobPath diarize = 
+        {
+            transcriberPath = Config.transcriberPath cfg
+            ffmpegPath = Config.ffmpegPath cfg
+            inputFolder = jobPath
+            outputFolder = jobPath
+            diarize = diarize
+            processId = None
+            isCancelled = false                
+        }
+
+    let create jobId jobPath clientId client diarize identifySpeaker txnJob idJob =  
         {
             JobId = jobId
             CreateTime = DateTime.Now
@@ -40,7 +60,8 @@ module Jobs =
             IdenifySpeaker = identifySpeaker            
             Client = client
             status = JobsState.Created
-            transcriptionJob = txnJob
+            TranscriptionJob = txnJob
+            IdentificationJob = idJob
         }        
 
     let clearJobFolder jobPath = 

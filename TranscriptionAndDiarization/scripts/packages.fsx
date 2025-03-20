@@ -22,6 +22,7 @@
 #r "nuget: FFMpegCore"
 #r "nuget: Plotly.NET"
 #r "nuget: MathNet.Numerics.FSharp"
+#r "nuget: FsPickler"
 
 #load "../Vtt.fs"
 #load "../Env.fs"

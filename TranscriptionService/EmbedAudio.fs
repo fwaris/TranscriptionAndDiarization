@@ -9,14 +9,14 @@ open NAudio.Wave
 open FFMpegCore
 open System.Numerics
 
-let pyannote = @"e:\s\models\pyannote-embedding-onnx\model.onnx"
+//let pyannote = @"e:\s\models\pyannote-embedding-onnx\model.onnx"
 
 let changeExt (inputFile:string) ext = 
     Path.Combine(Path.GetDirectoryName(inputFile),Path.GetFileNameWithoutExtension(inputFile) + ext)
 
-let pyannoteModel = lazy(
+let pyannoteModel (modelPath:string) = 
     let s_opts = new SessionOptions(LogSeverityLevel=OrtLoggingLevel.ORT_LOGGING_LEVEL_INFO)
-    new InferenceSession(pyannote,s_opts))
+    new InferenceSession(modelPath,s_opts)
 
 let toMemory (sp:ISampleProvider) = 
     let writer = ArrayBufferWriter<float32>()
@@ -108,11 +108,11 @@ let toSamples (waveFile16Kz:string) =
 let toOnnxInput (name:string) (input:Memory<float32>) = 
     NamedOnnxValue.CreateFromTensor(name, DenseTensor(input,[|1; input.Length|]))
 
-let getEmbeddings (input:NamedOnnxValue) = 
-    let results  = pyannoteModel.Value.Run([input])
+let getEmbeddings (model:InferenceSession) (input:NamedOnnxValue) = 
+    let results  = model.Run([input])
     results.[0].AsEnumerable<float32>() |> Seq.toArray
 
-let getEmbeddingsFromFile = toSamples >> (toOnnxInput "waveform") >> getEmbeddings
+let getEmbeddingsFromFile model = toSamples >> (toOnnxInput "waveform") >> (getEmbeddings model)
 
 let allPairsDist l1 l2 = 
     List.allPairs l1 l2 
