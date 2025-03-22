@@ -22,8 +22,8 @@ module ServiceApi =
                 let dispatch = model.mailbox.Writer.TryWrite>>ignore
                 let hub = Connection.get dispatch
                 do! checkConnect hub dispatch
-                let client = TranscriptionClient(hub)
-                return! f client
+                let svc = ServiceProxy(hub)
+                return! f svc
             with ex ->
                  return raise ex
         }

@@ -49,7 +49,7 @@ type ITranscriptionClient =
     abstract member JobsInQueue : int -> Task
     abstract member JobState : SrvJobStatus -> Task
 
-type TranscriptionClient(hub:HubConnection) =
+type ServiceProxy(hub:HubConnection) =
 
     interface ITranscriptionService with
         member this.Echo(arg1: string): Task<string> =
