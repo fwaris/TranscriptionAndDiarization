@@ -19,14 +19,20 @@ An F# windows service that exposes a SignalR connection to process transcription
 
 Transcription, diarizaton and speaker identification are compute intensive and so the service is meant to run on a GPU-enabled machine. The intent is to increase the utilization of the GPU infrastructure by making it more easily shareable.
 
-### TranscriptionClient 
+### TranscriptionClient
 An F# GUI application to submit jobs to the service. The client uploads the .mp4 files to the service and triggers the processing. When server processing is complete, the client downloads the transcipt (.vtt) files.
 
 ### TranscriptionService
-Contains core logic for transcripton and diarization.
+Contains core logic for transcription and diarization.
+Also contains the script [ExtractSpeakerEmbeddings.fsx](/TranscriptionService/scripts/ExtractSpeakerEmbeddings.fsx) that can be used to extract the audio embeddings for speaker identification.
 
 ### TranscriptionInterop
 Common definitions shared between client and server
 
 ### TranscriptionAndDiarization
 Older project that contains batch scripts that were used to develop and refine the transcription processing.
+
+# Configuration
+The TranscriptionClient is meant to connect to the remote service (running on a GPU box) via SSH and SCP. The SSH connection, with port forwarding, is used for SignalR. SCP protocol is used to upload/download files. The credentials are shared for SSH and SCP.
+
+The user id and password required for an SSH connection are stored in appsettings.json. For this reason *appsettings.json is excluded from the repo*. Instead **appsettings.json.template** is provided that contains the 'schema' of the settings. Copy the template file to appsettings.json and configure it appropriately for your setup.

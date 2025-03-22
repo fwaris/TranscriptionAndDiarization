@@ -4,6 +4,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+	<None Include="scripts/packages.fsx" />
+	<None Include="scripts\ExtractSpeakerEmbeddings.fsx" />
     <Compile Include="Vtt.fs" />
     <Compile Include="Log.fs" />
     <Compile Include="Env.fs" />

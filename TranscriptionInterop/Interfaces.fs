@@ -7,16 +7,16 @@ open System.Text.Json.Serialization
 
 module Ser =
 
-    let serOptions() = 
+    let serOptions() =
         let o = JsonSerializerOptions(JsonSerializerDefaults.General)
         o.WriteIndented <- true
         o.ReadCommentHandling <- JsonCommentHandling.Skip
         JsonFSharpOptions.Default()
             //.WithUnionEncoding(JsonUnionEncoding.NewtonsoftLike) //consider for future as provides better roundtrip support
-            .AddToJsonSerializerOptions(o)        
+            .AddToJsonSerializerOptions(o)
         o
 
-type JobsState = 
+type JobsState =
     | Created                        //job created in service, waiting for data to be uploaded
     | Uploading of string            //client uploading video file
     | ``In service queue``           //data uploaded, waiting for service to start processing the job
@@ -27,8 +27,8 @@ type JobsState =
     | Downloading of string          //client downloading .vtt file
     | Done                           //client has downloaded all vtt files
     | Cancelled                      //job was cancelled
-    | Cancelling                     //job is being cancelled 
-    | Error of string                
+    | Cancelling                     //job is being cancelled
+    | Error of string
     | ``Not found in service queue`` //job does not exist in service queue
 
 type JobCreation = {diarize:bool; identifySpeaker:bool}
@@ -49,23 +49,23 @@ type ITranscriptionClient =
     abstract member JobsInQueue : int -> Task
     abstract member JobState : SrvJobStatus -> Task
 
-type TranscriptionClient(hub:HubConnection) = 
-        
-    interface ITranscriptionService with        
-        member this.Echo(arg1: string): Task<string> = 
-            hub.InvokeAsync<string>(arg1)
+type TranscriptionClient(hub:HubConnection) =
+
+    interface ITranscriptionService with
+        member this.Echo(arg1: string): Task<string> =
+            hub.InvokeAsync<string>("Echo",arg1)
         member  this.CreateJob jobCreaton : Task<JobCreationResult> =
             hub.InvokeAsync<JobCreationResult>("CreateJob",jobCreaton)
-            
-        member this.QueueJob(jobId: string): Task = 
+
+        member this.QueueJob(jobId: string): Task =
             hub.InvokeAsync("QueueJob",jobId)
 
-        member this.ClearJob(jobId: string): Task = 
+        member this.ClearJob(jobId: string): Task =
             hub.InvokeAsync("ClearJob",jobId)
 
-        member this.CancelJob(jobId: string): Task = 
-            hub.InvokeAsync("CancelJob",jobId)            
-        
+        member this.CancelJob(jobId: string): Task =
+            hub.InvokeAsync("CancelJob",jobId)
+
         member this.SyncJobs(req) : Task<JobSyncResponse> =
             hub.InvokeAsync<JobSyncResponse>("SyncJobs",req)
-        
+

@@ -1,0 +1,10 @@
+﻿{
+  "Node": "localhost",
+  "NodePort": 57201,
+  "UseSSH" :  "false",
+  "SSH" : {
+      "LocalPort": 57201,
+      "User":"user01",
+      "EncPwd": ""
+  }
+}

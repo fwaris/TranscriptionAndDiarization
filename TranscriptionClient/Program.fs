@@ -20,15 +20,13 @@ type MainWindow() as this =
         base.Width <- 500.0
         base.Height <- 400.0
 
-        try if Config.useSSH then Connection.ssh.Value |> ignore with ex -> printfn $"{ex.Message}"
-    
         Program.mkProgram Update.init (Update.update this) Views.main
         |> Program.withHost this
         |> Program.withSubscription Update.subscriptions
         |> Program.withConsoleTrace
         |> Program.runWithAvaloniaSyncDispatch ()
 
-            
+
 type App() =
     inherit Application()
 

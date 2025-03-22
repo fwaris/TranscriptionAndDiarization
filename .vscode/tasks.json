@@ -48,6 +48,25 @@
                 "isDefault": false
             },
             "label": "build Transcription Client"
-        }        
+        },
+        {
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"publish",
+				"TranscriptionClient/TranscriptionClient.fsproj",
+                "-f:net8.0",
+				"-c:Release",
+				"-o:../TranscriptionClient/app"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"label": "publish client"
+		}
     ]
 }

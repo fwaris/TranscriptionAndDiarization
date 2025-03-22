@@ -3,8 +3,8 @@ open TranscriptionInterop
 open Microsoft.AspNetCore.SignalR.Client
 open System.Threading.Tasks
 
-module ServiceApi = 
-    let checkConnect (hub:HubConnection) dispatch = 
+module ServiceApi =
+    let checkConnect (hub:HubConnection) dispatch =
         task {
             if hub.State <> HubConnectionState.Connected then
                 try
@@ -28,7 +28,8 @@ module ServiceApi =
                  return raise ex
         }
 
-    let ping model = 
+    let ping model =
         task {
-            return! invoke<string> model (fun c -> c.Echo("test"))
+            let! e = invoke<string> model (fun c -> c.Echo("test"))
+            return ()
         }

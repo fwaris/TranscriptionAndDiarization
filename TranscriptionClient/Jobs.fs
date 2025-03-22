@@ -4,17 +4,17 @@ open System.IO
 open TranscriptionInterop
 
 //handle job related operations f
-module  Jobs = 
+module  Jobs =
     open Elmish
 
     let JOBS_FILE = "jobs.json"
     let saveJobs model =
         task {
-            try 
+            try
                 let json = System.Text.Json.JsonSerializer.Serialize(model.jobs,Ser.serOptions())
                 File.WriteAllText(JOBS_FILE, json)
-            with ex -> 
-                model.mailbox.Writer.TryWrite (Notify $"Error saving jobs: {ex.Message}" ) |> ignore     
+            with ex ->
+                model.mailbox.Writer.TryWrite (Notify $"Error saving jobs: {ex.Message}" ) |> ignore
         }
 
     let loadJobs model =
@@ -23,19 +23,19 @@ module  Jobs =
                 let json = File.ReadAllText JOBS_FILE
                 let jobs = System.Text.Json.JsonSerializer.Deserialize<Job list>(json,Ser.serOptions())
                 jobs
-            else 
+            else
                 []
-        with ex -> 
-            model.mailbox.Writer.TryWrite (Notify $"Error loading jobs: {ex.Message}" ) |> ignore  
+        with ex ->
+            model.mailbox.Writer.TryWrite (Notify $"Error loading jobs: {ex.Message}" ) |> ignore
             []
 
-    let updateStatus model id status = 
+    let updateStatus model id status =
         let m = {model with jobs = model.jobs |> List.map(fun j -> if j.JobId = id then {j with Status=status}; else j)}
         saveJobs m |> ignore
         m
 
-    let upsert model jobs = 
-        let jobs = 
+    let upsert model jobs =
+        let jobs =
             (jobs @ model.jobs)
             |> List.distinctBy _.JobId
         let m = {model with jobs=jobs}
@@ -50,7 +50,7 @@ module  Jobs =
                 match j.Status with
                 | Created                    -> dispatch (StartUpload j.JobId)
                 | ``In service queue``       -> () //do nothing on client as eventually the service will process the job and notify the client
-                | ``Done server processing`` -> dispatch (StartDownload j.JobId) 
+                | ``Done server processing`` -> dispatch (StartDownload j.JobId)
                 | _ -> ()
         }
 
@@ -64,9 +64,9 @@ module  Jobs =
             | _ ->
                 let map = jobs |> List.map (fun j -> j.JobId,j) |> Map.ofList
                 let! resp = ServiceApi.invoke model (fun client -> task{ return! client.SyncJobs {jobIds= jobs |> List.map _.JobId} }) |> Async.AwaitTask
-                let resolutions = 
+                let resolutions =
                     resp.jobsStatus
-                    |> List.map(fun x -> 
+                    |> List.map(fun x ->
                         let localStatus = map |> Map.tryFind x.jobId |> Option.map _.Status
                         match x.status,localStatus with
                         | Error _                           ,_             -> None, Some x.jobId
@@ -83,16 +83,17 @@ module  Jobs =
                 processRecoveredJobs model jobs |> ignore
                 return jobs
         }
-            
-    let removeJob model jobId = 
+
+    let removeJob model jobId =
         let m = {model with jobs = model.jobs |> List.filter(fun x -> x.JobId <> jobId)}
+        ServiceApi.invoke model (fun client -> task{ return! client.ClearJob jobId }) |> ignore
         saveJobs m |> ignore
         m
 
     let setError model (exn:Exception) =
         let ret =
-            let exn = if exn.InnerException <> null then exn.InnerException else exn            
-            match exn with 
-            | JobException(id,msg) -> updateStatus model id (Error msg), Cmd.none            
+            let exn = if exn.InnerException <> null then exn.InnerException else exn
+            match exn with
+            | JobException(id,msg) -> updateStatus model id (Error msg), Cmd.none
             | _ -> model, Cmd.ofMsg (Notify exn.Message)
         ret
