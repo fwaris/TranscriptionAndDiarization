@@ -67,6 +67,25 @@
 				"isDefault": false
 			},
 			"label": "publish client"
-		}
+		},
+        {
+			"command": "dotnet",
+			"type": "process",
+			"args": [
+				"publish",
+				"TranscriptionServiceHost/TranscriptionServiceHost.fsproj",
+                "-f:net9.0",
+				"-c:Release",
+				"-o:../TranscriptionService/app"
+			],
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"label": "publish service"
+		}        
     ]
 }

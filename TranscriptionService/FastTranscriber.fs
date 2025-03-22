@@ -33,6 +33,8 @@ let processFile (job:TranscriptionJob) (file:string) =
             job.processId <- Some p.Id
             if not r then failwith "Unable to start process"
             do! p.WaitForExitAsync() |> Async.AwaitTask
+            if p.ExitCode <> 0 then 
+                failwith "Unable to complete transcription"
     }
     
 let getFiles inputFolder outputFolder = 

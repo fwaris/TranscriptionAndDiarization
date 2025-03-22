@@ -45,7 +45,8 @@ module Pgm =
                     services.AddHostedService<Service>() |> ignore
                 )                
                 .ConfigureWebHostDefaults(fun wb -> 
-                    wb.UseStartup<Startup>() 
+                    wb
+                        .UseStartup<Startup>()
                     |> ignore
                 )
                 .Build()
