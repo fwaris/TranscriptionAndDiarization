@@ -17,12 +17,14 @@ Briefly,
 ### TranscriptionServiceHost
 An F# windows service that exposes a SignalR connection to process transcription requests. The service queues incoming 'jobs' and processes them serially. The client is notified when the job is done.
 
-Transcription, diarizaton and speaker identification are compute intensive and so the service is meant to run on a GPU-enabled machine. The intent is to increase the utilization of the GPU infrastructure by making it more easily shareable. 
+Transcription, diarizaton and speaker identification are compute intensive and so the service is meant to run on a GPU-enabled machine. The intent is to increase the utilization of the GPU infrastructure by making it more easily shareable.
 
 ### TranscriptionClient
-An F# GUI application to submit jobs to the service. The client uploads the .mp4 files to the service and triggers the processing. When server processing is complete, the client downloads the transcipt (.vtt) files.
+An F# GUI application to submit jobs to the service. The client uploads the .mp4 files to the service and triggers the processing. When server processing is complete, the client downloads the transcript (.vtt) files.
 
-The client is built with [Avalnoia FuncUI](https://github.com/fsprojects/Avalonia.FuncUI)
+![Transcription Client UI](imgs/transcription_client.png)
+
+[Client UI - built with Avalnoia FuncUI](https://github.com/fsprojects/Avalonia.FuncUI)
 
 The client uses SSH protocol for secure data exchange. And uploaded files are deleted by the service after the job is complete.
 
