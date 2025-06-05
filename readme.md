@@ -5,9 +5,9 @@ Wraps a few open source models to transcribe, diarize and optionally tag a speci
 Briefly,
 - Transcribe: Extract the audio from video (.mp4) files and convert the audio to text (speed-to-text).
 
-- Diarize: Adds speaker tags to the transcript for multiple speakers. The speaker tags are generic markers, e.g. SPEAKER_01, SPEAKER_02, etc.
+- Diarize: Adds speaker tags to the transcript for multiple speakers in the source file. The speaker tags are generic markers, e.g. SPEAKER_01, SPEAKER_02, etc.
 
-- Speaker Identification: Replaces the generic speaker tag with a configured speaker name using available audio sample embeddings of the speaker.
+- Speaker Identification: Replaces one of the generic speaker tags with a configured speaker name. This is done by matching the audios of the source file speakers to saved audio samples of the configured speaker.
 
 # Models
 - [Fast Transcriber](https://github.com/Purfview/whisper-standalone-win) - transcription and diarization
@@ -39,6 +39,6 @@ Common definitions shared between client and server
 Older project that contains batch scripts that were used to develop and refine the transcription processing.
 
 # Configuration
-The TranscriptionClient is meant to connect to the remote service (running on a GPU box) via SSH and SCP. The SSH connection, with port forwarding, is used for SignalR. SCP protocol is used for upload/download.
+The TranscriptionClient is meant to connect to the remote service (running on a GPU box) via SSH and SCP. The SSH connection, with port forwarding, is used for SignalR. The SCP protocol is used for upload/download of files.
 
 The user id and password required for an SSH/SCP connection are stored in appsettings.json. For this reason *appsettings.json is excluded from the repo*. Instead **appsettings.json.template** is provided that contains the 'schema' of the settings. Copy the template file to appsettings.json and configure it appropriately for your setup.
