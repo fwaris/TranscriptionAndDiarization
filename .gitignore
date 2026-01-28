@@ -364,3 +364,8 @@ FodyWeavers.xsd
 
 
 /TranscriptionClient/appsettings.json
+.DS_Store
+.idea/.idea.TranscriptionAndDiarization/.idea/.gitignore
+.idea/.idea.TranscriptionAndDiarization/.idea/encodings.xml
+.idea/.idea.TranscriptionAndDiarization/.idea/indexLayout.xml
+.idea/.idea.TranscriptionAndDiarization/.idea/vcs.xml
