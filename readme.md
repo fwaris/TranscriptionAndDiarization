@@ -1,3 +1,7 @@
+Updates:
+
+- 1/27/2026 - Rev packages and move to .Net 10
+
 # Transcription and Diarization
 
 Wraps a few open source models to transcribe, diarize and optionally tag a specific speaker.

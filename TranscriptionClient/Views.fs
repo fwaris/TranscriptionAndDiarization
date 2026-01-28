@@ -65,7 +65,7 @@ module JobsPanel =
                             Grid.row 0
                             Grid.column 2
                             Button.content "..."
-                            Button.onClick (fun _ -> getFolder window localFolder |> Async.Start )
+                            Button.onClick (fun _ -> getFolder window localFolder |> Async.StartImmediate )
                             Button.margin 2
                             Button.verticalAlignment VerticalAlignment.Center
                         ]                                            

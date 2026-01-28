@@ -7,6 +7,7 @@ open System.Threading.Tasks
 open Avalonia.FuncUI
 open Avalonia.Controls
 open Avalonia.Platform.Storage
+open Avalonia.Threading
 
 module Dialogs =
 
@@ -18,14 +19,18 @@ module Dialogs =
                 AllowMultiple = false
             )
 
-            // Show the folder picker dialog
-            let! folders = parent.StorageProvider.OpenFolderPickerAsync(options) |> Async.AwaitTask
+            // Show the folder picker dialog - must run on UI thread (required on macOS)
+            let! folders =
+                Dispatcher.UIThread.InvokeAsync<System.Collections.Generic.IReadOnlyList<IStorageFolder>>(
+                    System.Func<_>(fun () -> parent.StorageProvider.OpenFolderPickerAsync(options))
+                )
+                |> Async.AwaitTask
 
             // Process the selected folder
             return
                 folders
                 |> Seq.tryHead
-                |> Option.map _.TryGetLocalPath()                    
+                |> Option.map _.TryGetLocalPath()
         }
 
 

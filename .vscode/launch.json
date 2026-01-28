@@ -9,7 +9,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build TestClient",
-            "program": "${workspaceFolder}/TestClient/bin/Debug/net9.0/TestClient.dll",
+            "program": "${workspaceFolder}/TestClient/bin/Debug/net10.0/TestClient.dll",
             "args": [],
             "cwd": "${workspaceFolder}/TestClient",            
         },
@@ -18,7 +18,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build Transcription Client",
-            "program": "${workspaceFolder}/TranscriptionClient/bin/Debug/net9.0/TranscriptionClient.dll",
+            "program": "${workspaceFolder}/TranscriptionClient/bin/Debug/net10.0/TranscriptionClient.dll",
             "args": [],
             "cwd": "${workspaceFolder}/TranscriptionClient",
             
@@ -28,7 +28,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build Host",
-            "program": "${workspaceFolder}/TranscriptionServiceHost/bin/Debug/net9.0/TranscriptionServiceHost.dll",
+            "program": "${workspaceFolder}/TranscriptionServiceHost/bin/Debug/net10.0/TranscriptionServiceHost.dll",
             "args": [],
             "cwd": "${workspaceFolder}/TranscriptionServiceHost",
             

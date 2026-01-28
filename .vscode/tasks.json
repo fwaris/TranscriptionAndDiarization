@@ -55,7 +55,7 @@
 			"args": [
 				"publish",
 				"TranscriptionClient/TranscriptionClient.fsproj",
-                "-f:net8.0",
+                "-f:net10.0",
 				"-c:Release",
 				"-o:../TranscriptionClient/app"
 			],
@@ -74,7 +74,7 @@
 			"args": [
 				"publish",
 				"TranscriptionServiceHost/TranscriptionServiceHost.fsproj",
-                "-f:net9.0",
+                "-f:net10.0",
 				"-c:Release",
 				"-o:../TranscriptionService/app"
 			],
